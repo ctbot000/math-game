@@ -5,6 +5,7 @@
   var K = window.KoreanNumber;
   var STORE_KEY = 'korean-number-game/v1';
   var CHALLENGE_SECONDS = 60;
+  var UNLOCK_STREAK = 3;   // 한 단계에서 이만큼 연속으로 맞히면 다음 단계가 열린다
 
   var LEVELS = [
     { id: 'l1', label: '천', hint: '100 ~ 9,999 — 십·백·천 자리 익히기', min: 3, max: 4 },
@@ -23,7 +24,8 @@
 
   var state = {
     mode: 'practice',
-    levelId: 'l2',
+    levelId: 'l1',
+    unlocked: 0,          // 열려 있는 마지막 단계의 LEVELS 인덱스
     spaced: false,
     alwaysPlaces: false,
     sound: true,
@@ -55,7 +57,10 @@
         state.best.streak = saved.best.streak || 0;
         state.best.challenge = saved.best.challenge || 0;
       }
-      if (!LEVELS.some(function (l) { return l.id === state.levelId; })) state.levelId = 'l2';
+      state.unlocked = Math.max(0, Math.min(LEVELS.length - 1, saved.unlocked | 0));
+      if (!LEVELS.some(function (l) { return l.id === state.levelId; })) state.levelId = LEVELS[0].id;
+      // 아직 잠긴 단계가 저장돼 있으면 열려 있는 마지막 단계로 되돌린다.
+      if (levelIndex(state.levelId) > state.unlocked) state.levelId = LEVELS[state.unlocked].id;
       if (!MODE_PROMPT[state.mode]) state.mode = 'practice';
     } catch (e) { /* 저장값이 깨졌으면 기본값으로 시작한다 */ }
   }
@@ -63,8 +68,9 @@
   function savePrefs() {
     try {
       localStorage.setItem(STORE_KEY, JSON.stringify({
-        mode: state.mode, levelId: state.levelId, spaced: state.spaced,
-        alwaysPlaces: state.alwaysPlaces, sound: state.sound, best: state.best
+        mode: state.mode, levelId: state.levelId, unlocked: state.unlocked,
+        spaced: state.spaced, alwaysPlaces: state.alwaysPlaces,
+        sound: state.sound, best: state.best
       }));
     } catch (e) { /* 사파리 프라이빗 모드 등 — 저장 못 해도 진행 */ }
   }
@@ -82,7 +88,8 @@
       if (audioCtx.state === 'suspended') audioCtx.resume();
       var freqs = kind === 'good' ? [659.25, 987.77]
         : kind === 'bad' ? [233.08, 185.00]
-          : [523.25];
+          : kind === 'unlock' ? [523.25, 659.25, 783.99, 1046.50]
+            : [523.25];
       var now = audioCtx.currentTime;
       freqs.forEach(function (f, i) {
         var at = now + i * 0.085;
@@ -103,9 +110,23 @@
 
   // ------------------------------------------------------------------ 문제
 
-  function levelById(id) {
-    for (var i = 0; i < LEVELS.length; i++) if (LEVELS[i].id === id) return LEVELS[i];
-    return LEVELS[1];
+  function levelIndex(id) {
+    for (var i = 0; i < LEVELS.length; i++) if (LEVELS[i].id === id) return i;
+    return 0;
+  }
+
+  function levelById(id) { return LEVELS[levelIndex(id)]; }
+
+  /** 단계 설명 + 다음 단계 해금까지 남은 연속 정답 수 */
+  function levelHintText() {
+    var idx = levelIndex(state.levelId);
+    var text = LEVELS[idx].hint;
+    if (idx + 1 >= LEVELS.length) return text + ' · 마지막 단계';
+    if (idx + 1 > state.unlocked) {
+      return text + ' · 연속 ' + Math.min(state.streak, UNLOCK_STREAK) + '/' + UNLOCK_STREAK +
+        ' → 「' + LEVELS[idx + 1].label + '」 해금';
+    }
+    return text + ' · 「' + LEVELS[idx + 1].label + '」 열림';
   }
 
   function randomInt(n) { return Math.floor(Math.random() * n); }
@@ -219,27 +240,35 @@
       var b = document.createElement('button');
       b.type = 'button';
       b.dataset.level = lv.id;
-      b.textContent = lv.label;
-      b.setAttribute('aria-pressed', String(lv.id === state.levelId));
       el.levelGroup.appendChild(b);
     });
-    el.levelHint.textContent = levelById(state.levelId).hint;
+    syncLevels();
+  }
+
+  function syncLevels() {
+    Array.prototype.forEach.call(el.levelGroup.children, function (b, i) {
+      var locked = i > state.unlocked;
+      b.disabled = locked;
+      b.textContent = (locked ? '🔒 ' : '') + LEVELS[i].label;
+      b.setAttribute('aria-pressed', String(LEVELS[i].id === state.levelId));
+      b.title = locked
+        ? '「' + LEVELS[i - 1].label + '」 단계에서 ' + UNLOCK_STREAK + '연속 정답이면 열려요'
+        : LEVELS[i].hint;
+    });
+    el.levelHint.textContent = levelHintText();
   }
 
   function syncToggles() {
     Array.prototype.forEach.call(el.modeGroup.children, function (b) {
       b.setAttribute('aria-pressed', String(b.dataset.mode === state.mode));
     });
-    Array.prototype.forEach.call(el.levelGroup.children, function (b) {
-      b.setAttribute('aria-pressed', String(b.dataset.level === state.levelId));
-    });
+    syncLevels();
     Array.prototype.forEach.call(el.displayGroup.children, function (b) {
       var on = b.dataset.toggle === 'spaced' ? state.spaced : state.alwaysPlaces;
       b.setAttribute('aria-pressed', String(on));
     });
     el.btnSound.setAttribute('aria-pressed', String(state.sound));
     el.btnSound.textContent = state.sound ? '🔊' : '🔇';
-    el.levelHint.textContent = levelById(state.levelId).hint;
   }
 
   function renderStats() {
@@ -248,6 +277,7 @@
     el.statAccuracy.textContent = state.asked
       ? Math.round((state.correct / state.asked) * 100) + '%'
       : '—';
+    el.levelHint.textContent = levelHintText();   // 해금까지 남은 연속 정답 수도 여기서 갱신
 
     if (state.mode === 'challenge') {
       var left = state.phase === 'over' ? 0 : Math.max(0, Math.ceil((state.endsAt - Date.now()) / 1000));
@@ -322,7 +352,7 @@
     if (input) input.focus();
   }
 
-  function renderFeedback(allOk, gained) {
+  function renderFeedback(allOk, gained, unlockedLevel) {
     var v = state.current;
     var fb = el.feedback;
     fb.innerHTML = '';
@@ -337,6 +367,14 @@
       verdict.appendChild(delta);
     }
     fb.appendChild(verdict);
+
+    if (unlockedLevel) {
+      var unlock = document.createElement('div');
+      unlock.className = 'unlock';
+      unlock.textContent = '🔓 ' + UNLOCK_STREAK + '연속! 「' + unlockedLevel.label +
+        '」 단계가 열렸어요 — ' + unlockedLevel.hint;
+      fb.appendChild(unlock);
+    }
 
     var line = document.createElement('div');
     line.className = 'answer-line';
@@ -423,21 +461,28 @@
 
     state.asked++;
     var gained = 0;
+    var unlockedLevel = null;
     if (allOk) {
       state.correct++;
       state.streak++;
       gained = pointsFor(v, state.streak);
       state.score += gained;
-      if (state.streak > state.best.streak) {
-        state.best.streak = state.streak;
-        savePrefs();
+      if (state.streak > state.best.streak) state.best.streak = state.streak;
+
+      // 이 단계에서 UNLOCK_STREAK 연속이면 다음 단계를 연다.
+      var idx = levelIndex(state.levelId);
+      if (state.streak >= UNLOCK_STREAK && idx + 1 < LEVELS.length && idx + 1 > state.unlocked) {
+        state.unlocked = idx + 1;
+        unlockedLevel = LEVELS[idx + 1];
+        syncLevels();
       }
+      savePrefs();
     } else {
       state.streak = 0;
     }
 
-    beep(allOk ? 'good' : 'bad');
-    renderFeedback(allOk, gained);
+    beep(unlockedLevel ? 'unlock' : allOk ? 'good' : 'bad');
+    renderFeedback(allOk, gained, unlockedLevel);
     renderPlaceTable(v);
     el.placeTable.hidden = state.mode === 'reverse';
     el.btnSubmit.textContent = '다음 문제 →';
@@ -542,7 +587,7 @@
 
     el.levelGroup.addEventListener('click', function (e) {
       var b = e.target.closest('button[data-level]');
-      if (!b || b.dataset.level === state.levelId) return;
+      if (!b || b.disabled || b.dataset.level === state.levelId) return;
       state.levelId = b.dataset.level;
       savePrefs();
       syncToggles();

@@ -158,6 +158,16 @@ body {
   font-weight: 600;
 }
 
+.segmented button:disabled {
+  opacity: 0.4;
+  border-style: dashed;
+  cursor: not-allowed;
+}
+.segmented button:disabled:hover {
+  color: var(--muted);
+  border-color: var(--border);
+}
+
 .level-hint { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
 
 /* ---------- 통계 ---------- */
@@ -321,6 +331,17 @@ body {
 .verdict.good { background: var(--good-soft); color: var(--good); }
 .verdict.bad { background: var(--bad-soft); color: var(--bad); }
 .verdict .score-delta { margin-left: auto; font-size: 13px; font-variant-numeric: tabular-nums; }
+
+.unlock {
+  margin-top: 10px;
+  padding: 11px 13px;
+  border: 1px solid var(--gold);
+  border-radius: 11px;
+  background: linear-gradient(135deg, rgba(255, 209, 102, 0.16), var(--accent-soft));
+  font-size: 14px;
+  font-weight: 600;
+  word-break: keep-all;
+}
 
 .answer-line {
   margin-top: 10px;
