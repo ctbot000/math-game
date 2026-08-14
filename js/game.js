@@ -17,9 +17,9 @@
   ];
 
   var MODE_PROMPT = {
-    practice: '이 숫자를 한국어로 읽어 보세요',
-    challenge: '이 숫자를 한국어로 읽어 보세요',
-    reverse: '이 말을 숫자로 써 보세요'
+    practice: '아래 숫자를 읽어 보세요',
+    challenge: '아래 숫자를 읽어 보세요',
+    reverse: '아래 말을 숫자로 써 보세요'
   };
 
   var state = {
@@ -180,7 +180,7 @@
     var canonical = K.toHangul(target);
     if (/[0-9]/.test(s)) return { ok: false, msg: '한글로 읽어 주세요. 예: 만오천' };
     var v = K.parseHangul(s);
-    if (v === null) return { ok: false, msg: '한글 수사로 입력해 주세요. 예: 만오천' };
+    if (v === null) return { ok: false, msg: '읽을 수 없는 표기예요. 한글로 읽어 주세요. 예: 만오천' };
     if (v !== target) return { ok: false, msg: '정답은 ' + K.toHangul(target, { spaced: state.spaced }) };
     if (s.replace(/\s+/g, '') === canonical) return { ok: true, msg: '' };
     return { ok: true, msg: '맞아요. 보통은 「' + canonical + '」처럼 읽어요.' };
@@ -213,7 +213,7 @@
     var has = function (fn) { return groups.some(fn); };
 
     if (has(function (g) { return g.index === 1 && g.value === 1n; })) {
-      return { head: '만 앞의 1은 읽지 않아요.', body: '10000 은 「일만」이 아니라 「만」. 단, 억·조는 「일억」·「일조」로 1을 살려 읽습니다.' };
+      return { head: '만 앞의 1은 읽지 않아요.', body: '10000은 「일만」이 아니라 「만」. 단, 억·조는 「일억」·「일조」로 1을 살려 읽습니다.' };
     }
     if (has(function (g) { return g.index >= 2 && g.value === 1n; })) {
       return { head: '억·조 앞의 1은 읽어요.', body: '만과 달리 「일억」, 「일조」처럼 1을 붙여 읽습니다.' };
@@ -223,13 +223,13 @@
     if (emptyGroup || innerZero) {
       return {
         head: '값이 0인 자리는 읽지 않고 건너뜁니다.',
-        body: '801 은 「팔백일」(팔백영십일 ✗), 100020000 은 1억 2만 → 「일억이만」. 비어 있는 자리는 아예 빼고 읽어요.'
+        body: '801은 「팔백일」(팔백영십일 ✗), 100020000은 1억 2만 → 「일억이만」. 비어 있는 자리는 아예 빼고 읽어요.'
       };
     }
     if (has(function (g) { return /1/.test(String(g.value).padStart(4, '0').slice(0, 3)); })) {
-      return { head: '십·백·천 앞의 1은 읽지 않아요.', body: '110 은 「일백일십」이 아니라 「백십」으로 읽습니다.' };
+      return { head: '십·백·천 앞의 1은 읽지 않아요.', body: '110은 「일백일십」이 아니라 「백십」으로 읽습니다.' };
     }
-    return { head: '네 자리씩 끊어서 보세요.', body: '한국어는 세 자리(,)가 아니라 네 자리마다 만 · 억 · 조로 단위가 올라갑니다.' };
+    return { head: '네 자리씩 끊어서 보세요.', body: '한국어는 세 자리가 아니라 네 자리마다 만·억·조로 단위가 올라갑니다.' };
   }
 
   // ------------------------------------------------------------------ 그리기
@@ -320,7 +320,7 @@
 
     el.prompt.textContent = MODE_PROMPT[state.mode];
     el.question.classList.toggle('is-hangul', reverse);
-    // 문제 숫자는 쉼표 없이 보여준다. 세 자리 쉼표는 네 자리로 끊는 연습을 방해한다.
+    // 문제 숫자는 쉼표 없이 보여 준다. 세 자리 쉼표는 네 자리로 끊는 연습을 방해한다.
     el.question.textContent = reverse
       ? K.toHangul(v, { spaced: state.spaced })
       : String(v);
@@ -360,7 +360,7 @@
 
     var verdict = document.createElement('div');
     verdict.className = 'verdict ' + (allOk ? 'good' : 'bad');
-    verdict.appendChild(document.createTextNode(allOk ? '정답이에요!' : '다시 한 번 봐요'));
+    verdict.appendChild(document.createTextNode(allOk ? '정답이에요!' : '다시 한번 봐요'));
     if (allOk && gained > 0) {
       var delta = document.createElement('span');
       delta.className = 'score-delta';
@@ -372,8 +372,8 @@
     if (unlockedLevel) {
       var unlock = document.createElement('div');
       unlock.className = 'unlock';
-      unlock.textContent = '🔓 ' + UNLOCK_STREAK + '연속! 「' + unlockedLevel.label +
-        '」 단계가 열렸어요 — ' + unlockedLevel.hint;
+      unlock.textContent = '🔓 ' + UNLOCK_STREAK + '연속 정답! 「' + unlockedLevel.label +
+        '」 단계가 열렸어요.';
       fb.appendChild(unlock);
     }
 
