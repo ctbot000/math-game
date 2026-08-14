@@ -113,7 +113,7 @@
     return parts.join(spaced ? ' ' : '');
   }
 
-  /** 숫자 + 단위 표기. 예) 15000 -> "1만 5000" */
+  /** 만 단위로 끊어 쓴 표기. 예) 15000 -> "1만 5000" */
   function toMixed(value) {
     var n = toBigInt(value);
     if (n === null) return '';
@@ -173,7 +173,7 @@
   }
 
   /**
-   * 숫자+단위 표기 -> 수. 파싱할 수 없으면 null.
+   * 만 단위로 끊어 쓴 표기 -> 수. 파싱할 수 없으면 null.
    * '1만 5000', '1만5000', '1만 5,000' 을 모두 읽는다. '15000' 도 값으로는 읽힌다.
    */
   function parseMixed(input) {

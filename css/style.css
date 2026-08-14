@@ -216,7 +216,8 @@ body {
   text-align: center;
   font-size: clamp(26px, 7.2vw, 44px);
   font-weight: 800;
-  letter-spacing: -1px;
+  /* 쉼표가 없으므로 자릿수를 세기 쉽도록 살짝 벌린다 */
+  letter-spacing: 0.04em;
   font-variant-numeric: tabular-nums;
   word-break: keep-all;
   overflow-wrap: anywhere;

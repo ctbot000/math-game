@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="한국어 수 읽기 연습 게임 — 조 단위까지 숫자를 '1만 5000' 과 '만오천' 두 가지로 읽는 법을 익힙니다.">
+<meta name="description" content="한국어 수 읽기 연습 게임 — 조 단위까지, 숫자를 '1만 5000' 으로 끊어 쓰고 '만오천' 으로 읽는 법을 익힙니다.">
 <title>한국어 숫자 읽기</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🔢</text></svg>">
 <link rel="stylesheet" href="css/style.css">
@@ -16,7 +16,7 @@
       <span class="logo" aria-hidden="true">萬</span>
       <div>
         <h1>한국어 숫자 읽기</h1>
-        <p>조(兆) 단위까지 · 숫자+단위 / 한글 두 가지로</p>
+        <p>조(兆) 단위까지 · 끊어 쓰기와 한글 읽기</p>
       </div>
     </div>
     <div class="topbar-actions">
@@ -32,15 +32,16 @@
       <span><b>일</b> 1</span>
       <span><b>십</b> 10</span>
       <span><b>백</b> 100</span>
-      <span><b>천</b> 1,000</span>
-      <span><b>만</b> 10,000</span>
+      <span><b>천</b> 1000</span>
+      <span><b>만</b> 10000</span>
       <span><b>억</b> 1억</span>
       <span><b>조</b> 1조</span>
     </div>
     <ul>
       <li><b>네 자리씩 끊는다.</b> 영어는 세 자리(thousand·million)지만 한국어는 네 자리마다
-        <code>만 · 억 · 조</code> 로 올라간다. 쉼표를 무시하고 다시 끊는 것이 핵심.
-        <code>12,345,678 → 1234만 5678</code></li>
+        <code>만 · 억 · 조</code> 로 올라간다. <code>12345678 → 1234만 5678</code></li>
+      <li><b>쉼표는 도움이 안 된다.</b> 영수증의 <code>12,345,678</code> 은 세 자리씩 끊은 것이라
+        한국어 읽기와 어긋난다. 이 게임이 문제를 쉼표 없이 보여주는 이유다.</li>
       <li><b>십·백·천 앞의 1은 읽지 않는다.</b> <code>110 → 백십</code> (일백일십 ✗)</li>
       <li><b>만 앞의 1도 읽지 않는다.</b> <code>10000 → 만</code> (일만도 통용되지만 기본은 「만」)</li>
       <li><b>억·조 앞의 1은 읽는다.</b> <code>100000000 → 일억</code>, <code>1조 → 일조</code></li>
@@ -86,14 +87,14 @@
   <!-- 문제 -->
   <main class="card" id="card">
     <p class="prompt" id="prompt">이 숫자를 한국어로 읽어 보세요</p>
-    <p class="question" id="question">15,000</p>
+    <p class="question" id="question">15000</p>
     <div class="place-table" id="place-table" hidden></div>
 
     <form id="answer-form" autocomplete="off">
       <div class="fields">
         <div class="field" id="field-mixed">
           <div class="field-head">
-            <label for="input-mixed">숫자 + 단위</label>
+            <label for="input-mixed">만 단위로 끊어 쓰기</label>
             <span class="eg">예: 1만 5000</span>
           </div>
           <input id="input-mixed" type="text" inputmode="text" placeholder="1만 5000" spellcheck="false">

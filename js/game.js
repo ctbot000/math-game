@@ -8,10 +8,10 @@
   var UNLOCK_STREAK = 3;   // 한 단계에서 이만큼 연속으로 맞히면 다음 단계가 열린다
 
   var LEVELS = [
-    { id: 'l1', label: '천', hint: '100 ~ 9,999 — 십·백·천 자리 익히기', min: 3, max: 4 },
-    { id: 'l2', label: '만', hint: '10,000 ~ 99,999 — 네 자리씩 끊는 감각 잡기', min: 5, max: 5 },
-    { id: 'l3', label: '십만~천만', hint: '100,000 ~ 99,999,999 — 만 단위 굳히기', min: 6, max: 8 },
-    { id: 'l4', label: '억', hint: '1억 ~ 9,999억 — 억 자리 등장', min: 9, max: 12 },
+    { id: 'l1', label: '천', hint: '100 ~ 9999 — 십·백·천 자리 익히기', min: 3, max: 4 },
+    { id: 'l2', label: '만', hint: '10000 ~ 99999 — 네 자리씩 끊는 감각 잡기', min: 5, max: 5 },
+    { id: 'l3', label: '십만~천만', hint: '100000 ~ 99999999 — 만 단위 굳히기', min: 6, max: 8 },
+    { id: 'l4', label: '억', hint: '1억 ~ 9999억 — 억 자리 등장', min: 9, max: 12 },
     { id: 'l5', label: '조', hint: '1조 ~ 999조 — 최고 단계', min: 13, max: 15 },
     { id: 'mix', label: '혼합', hint: '천 ~ 조 무작위 — 실전 연습', min: 3, max: 15 }
   ];
@@ -160,7 +160,7 @@
     var v = K.parseMixed(s);
     var canonical = K.toMixed(target);
     if (v === null) {
-      return { ok: false, msg: '숫자와 만·억·조 단위로 입력해 주세요. 예: 1만 5000' };
+      return { ok: false, msg: '만·억·조로 끊어서 써 주세요. 예: 1만 5000' };
     }
     if (stripAll(s) === stripAll(canonical)) return { ok: true, msg: '' };
     if (v === target) {
@@ -168,7 +168,7 @@
         ok: false,
         msg: /[만억조]/.test(s)
           ? '값은 맞아요. 표준 표기는 ' + canonical
-          : '값은 맞아요. 만·억·조 단위로 끊어서 써 보세요 → ' + canonical
+          : '값은 맞아요. 만·억·조로 끊어서 써 보세요 → ' + canonical
       };
     }
     return { ok: false, msg: '정답은 ' + canonical };
@@ -190,14 +190,14 @@
     var s = stripAll(raw);
     if (!s) return { ok: false, msg: '입력해 주세요.' };
     if (!/^\d+$/.test(s)) return { ok: false, msg: '숫자만 입력해 주세요.' };
-    if (BigInt(s) !== target) return { ok: false, msg: '정답은 ' + K.toComma(target) };
+    if (BigInt(s) !== target) return { ok: false, msg: '정답은 ' + String(target) };
     return { ok: true, msg: '' };
   }
 
   /** 이번 문제에서 실제로 물어보는 칸들 */
   function activeFields() {
     if (state.mode === 'reverse') return ['digits'];
-    // 10000 미만이면 '숫자+단위' 표기가 숫자 그대로라 물어볼 것이 없다.
+    // 10000 미만이면 끊어 쓴 표기가 숫자 그대로라 물어볼 것이 없다.
     return state.current < 10000n ? ['hangul'] : ['mixed', 'hangul'];
   }
 
@@ -213,7 +213,7 @@
     var has = function (fn) { return groups.some(fn); };
 
     if (has(function (g) { return g.index === 1 && g.value === 1n; })) {
-      return { head: '만 앞의 1은 읽지 않아요.', body: '10,000 은 「일만」이 아니라 「만」. 단, 억·조는 「일억」·「일조」로 1을 살려 읽습니다.' };
+      return { head: '만 앞의 1은 읽지 않아요.', body: '10000 은 「일만」이 아니라 「만」. 단, 억·조는 「일억」·「일조」로 1을 살려 읽습니다.' };
     }
     if (has(function (g) { return g.index >= 2 && g.value === 1n; })) {
       return { head: '억·조 앞의 1은 읽어요.', body: '만과 달리 「일억」, 「일조」처럼 1을 붙여 읽습니다.' };
@@ -223,7 +223,7 @@
     if (emptyGroup || innerZero) {
       return {
         head: '값이 0인 자리는 읽지 않고 건너뜁니다.',
-        body: '801 은 「팔백일」(팔백영십일 ✗), 100,020,000 은 1억 2만 → 「일억이만」. 비어 있는 자리는 아예 빼고 읽어요.'
+        body: '801 은 「팔백일」(팔백영십일 ✗), 100020000 은 1억 2만 → 「일억이만」. 비어 있는 자리는 아예 빼고 읽어요.'
       };
     }
     if (has(function (g) { return /1/.test(String(g.value).padStart(4, '0').slice(0, 3)); })) {
@@ -320,9 +320,10 @@
 
     el.prompt.textContent = MODE_PROMPT[state.mode];
     el.question.classList.toggle('is-hangul', reverse);
+    // 문제 숫자는 쉼표 없이 보여준다. 세 자리 쉼표는 네 자리로 끊는 연습을 방해한다.
     el.question.textContent = reverse
       ? K.toHangul(v, { spaced: state.spaced })
-      : K.toComma(v);
+      : String(v);
 
     renderPlaceTable(v);
     el.placeTable.hidden = !state.alwaysPlaces || reverse;
@@ -378,7 +379,7 @@
 
     var line = document.createElement('div');
     line.className = 'answer-line';
-    var pieces = [K.toComma(v)];
+    var pieces = [String(v)];
     if (v >= 10000n) pieces.push(K.toMixed(v));
     pieces.push(K.toHangul(v, { spaced: state.spaced }));
     pieces.forEach(function (p, i) {
