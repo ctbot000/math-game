@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<title>korean-number.js 테스트</title>
+<style>
+  body { font: 14px/1.6 ui-monospace, SFMono-Regular, Menlo, monospace; margin: 24px; background: #10131a; color: #d7dce5; }
+  h1 { font-size: 18px; }
+  #summary { padding: 10px 14px; border-radius: 8px; font-weight: 700; margin: 16px 0; }
+  #summary.ok { background: #123524; color: #6ee7a8; }
+  #summary.bad { background: #3a1620; color: #ff8fa3; }
+  li { list-style: none; padding: 2px 0; }
+  .pass { color: #4f9d76; }
+  .fail { color: #ff8fa3; }
+  ul { padding-left: 0; }
+</style>
+</head>
+<body>
+<h1>korean-number.js 테스트</h1>
+<div id="summary">실행 중…</div>
+<ul id="list"></ul>
+
+<script src="js/korean-number.js"></script>
+<script src="js/korean-number.test.js"></script>
+<script>
+  var results = window.KOREAN_NUMBER_TEST_RESULTS || [];
+  var failed = results.filter(function (r) { return !r.pass; });
+  var summary = document.getElementById('summary');
+  summary.className = failed.length ? 'bad' : 'ok';
+  summary.textContent = failed.length
+    ? 'FAIL ' + failed.length + ' / ' + results.length
+    : 'PASS ' + results.length + ' / ' + results.length;
+
+  var list = document.getElementById('list');
+  // 실패한 것만 위에, 그 다음 전체 목록.
+  (failed.length ? failed : results).forEach(function (r) {
+    var li = document.createElement('li');
+    li.className = r.pass ? 'pass' : 'fail';
+    li.textContent = (r.pass ? '✓ ' : '✗ ') + r.label +
+      (r.pass ? ' = ' + r.actual : '  기대: ' + r.expected + '  실제: ' + r.actual);
+    list.appendChild(li);
+  });
+  document.title = summary.textContent;
+</script>
+</body>
+</html>
