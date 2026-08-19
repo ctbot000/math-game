@@ -125,5 +125,48 @@
   eq(pt.map(function (r) { return r.label + ':' + r.digits; }).join(' '),
     '억:1 만:0001 일:0000', 'placeTable(100010000)');
 
+  // ---- unitCounts / subjectParticle -----------------------------------
+  function countsOf(v) {
+    return K.unitCounts(v).map(function (r) {
+      return r.label + ':' + r.count + '/' + r.unitValue;
+    }).join(' ');
+  }
+
+  eq(countsOf(503690), '만:50/10000 일:3690/1', 'unitCounts(503690)');
+  eq(countsOf(15000), '만:1/10000 일:5000/1', 'unitCounts(15000)');
+  eq(countsOf(500000), '만:50/10000', 'unitCounts(500000) — 0인 단위는 빠진다');
+  eq(countsOf(500023), '만:50/10000 일:23/1', 'unitCounts(500023) — 개수가 4자리 미만');
+  eq(countsOf(100020000), '억:1/100000000 만:2/10000', 'unitCounts(100020000)');
+  eq(countsOf('1234567890123'),
+    '조:1/1000000000000 억:2345/100000000 만:6789/10000 일:123/1', 'unitCounts(1조대)');
+  eq(countsOf(3690), '1000:3/1000 100:6/100 10:9/10', 'unitCounts(3690) — 10000 미만은 자리별로');
+  eq(countsOf(9999), '1000:9/1000 100:9/100 10:9/10 1:9/1', 'unitCounts(9999)');
+  eq(countsOf(700), '100:7/100', 'unitCounts(700)');
+  eq(K.unitCounts(0).length, 0, 'unitCounts(0)');
+
+  eq(K.subjectParticle('만'), '이', 'subjectParticle(만)');
+  eq(K.subjectParticle('억'), '이', 'subjectParticle(억)');
+  eq(K.subjectParticle('조'), '가', 'subjectParticle(조) — 받침이 없다');
+  eq(K.subjectParticle('일'), '이', 'subjectParticle(일)');
+  eq(K.subjectParticle('1000'), '이', 'subjectParticle(1000) -> 천이');
+  eq(K.subjectParticle('100'), '이', 'subjectParticle(100) -> 백이');
+  eq(K.subjectParticle('10'), '이', 'subjectParticle(10) -> 십이');
+  eq(K.subjectParticle('1'), '이', 'subjectParticle(1) -> 일이');
+
+  // 단위별 개수를 다시 더하면 원래 수가 나와야 한다
+  var ucFail = 0;
+  var ucSample = null;
+  for (var u = 0; u < 1000; u++) {
+    var ulen = 1 + Math.floor(Math.random() * 15);
+    var us = String(1 + Math.floor(Math.random() * 9));
+    for (var uj = 1; uj < ulen; uj++) us += String(Math.floor(Math.random() * 10));
+    var un = BigInt(us);
+    var sum = K.unitCounts(un).reduce(function (acc, r) {
+      return acc + r.count * r.unitValue;
+    }, 0n);
+    if (sum !== un) { ucFail++; if (!ucSample) ucSample = us + ' -> ' + sum; }
+  }
+  eq(ucFail, 0, '단위 개수 합산 1000건' + (ucSample ? ' (첫 실패: ' + ucSample + ')' : ''));
+
   global.KOREAN_NUMBER_TEST_RESULTS = results;
 })(window);

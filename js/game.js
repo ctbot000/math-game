@@ -19,8 +19,21 @@
   var MODE_PROMPT = {
     practice: '아래 숫자를 읽어 보세요',
     challenge: '아래 숫자를 읽어 보세요',
-    reverse: '아래 말을 숫자로 써 보세요'
+    reverse: '아래 말을 숫자로 써 보세요',
+    compose: '아래 설명에 맞는 수를 써 보세요'
   };
+
+  // 답을 숫자 한 칸으로 받는 모드 (문제가 글로 제시된다)
+  function isTextQuestion() {
+    return state.mode === 'reverse' || state.mode === 'compose';
+  }
+
+  /** '만이 50개, 일이 3690개인 수' */
+  function composeText(value) {
+    return K.unitCounts(value).map(function (r) {
+      return r.label + K.subjectParticle(r.label) + ' ' + r.count + '개';
+    }).join(', ') + '인 수';
+  }
 
   var state = {
     mode: 'practice',
@@ -196,7 +209,7 @@
 
   /** 이번 문제에서 실제로 물어보는 칸들 */
   function activeFields() {
-    if (state.mode === 'reverse') return ['digits'];
+    if (isTextQuestion()) return ['digits'];
     // 10000 미만이면 끊어 쓴 표기가 숫자 그대로라 물어볼 것이 없다.
     return state.current < 10000n ? ['hangul'] : ['mixed', 'hangul'];
   }
@@ -209,6 +222,13 @@
   // ------------------------------------------------------------------ 힌트
 
   function tipFor(value) {
+    if (state.mode === 'compose') {
+      return {
+        head: '단위 개수는 곱셈이에요.',
+        body: '「만이 50개」는 50 × 10000 = 500000. 단위마다 값을 곱해 모두 더하면 됩니다. ' +
+          '뒤 단위는 네 자리를 채워야 해요 — 「만이 50개, 일이 23개」는 500023.'
+      };
+    }
     var groups = K.splitGroups(value);
     var has = function (fn) { return groups.some(fn); };
 
@@ -316,17 +336,18 @@
 
   function renderQuestion() {
     var v = state.current;
-    var reverse = state.mode === 'reverse';
+    var textual = isTextQuestion();
 
     el.prompt.textContent = MODE_PROMPT[state.mode];
-    el.question.classList.toggle('is-hangul', reverse);
+    el.question.classList.toggle('is-hangul', textual);
     // 문제 숫자는 쉼표 없이 보여 준다. 세 자리 쉼표는 네 자리로 끊는 연습을 방해한다.
-    el.question.textContent = reverse
-      ? K.toHangul(v, { spaced: state.spaced })
-      : String(v);
+    el.question.textContent = state.mode === 'compose' ? composeText(v)
+      : state.mode === 'reverse' ? K.toHangul(v, { spaced: state.spaced })
+        : String(v);
 
     renderPlaceTable(v);
-    el.placeTable.hidden = !state.alwaysPlaces || reverse;
+    // 글로 낸 문제에서는 자리표가 곧 정답이라 풀 때는 감춘다.
+    el.placeTable.hidden = !state.alwaysPlaces || textual;
 
     var active = activeFields();
     ['Mixed', 'Hangul', 'Digits'].forEach(function (name) {
@@ -341,7 +362,7 @@
     el.feedback.hidden = true;
     el.feedback.innerHTML = '';
     el.btnSubmit.textContent = '확인';
-    el.btnHint.disabled = false;
+    el.btnHint.disabled = textual;
     el.btnSkip.disabled = false;
     state.phase = 'answer';
     focusFirstField();
@@ -351,6 +372,45 @@
     var first = activeFields()[0];
     var input = el['input' + first.charAt(0).toUpperCase() + first.slice(1)];
     if (input) input.focus();
+  }
+
+  /** 단위 개수 모드 해설: 단위마다 (개수 × 단위값), 마지막 줄에 합. */
+  function composeTable(value) {
+    var table = document.createElement('table');
+    table.className = 'breakdown';
+    table.innerHTML = '<thead><tr><th>단위</th><th>개수</th><th>값</th></tr></thead>';
+    var tbody = document.createElement('tbody');
+
+    K.unitCounts(value).forEach(function (r) {
+      var tr = document.createElement('tr');
+      var unit = document.createElement('td');
+      unit.className = 'u';
+      unit.textContent = r.label;
+      var count = document.createElement('td');
+      count.textContent = r.count + '개';
+      var amount = document.createElement('td');
+      amount.textContent = String(r.count * r.unitValue);
+      tr.appendChild(unit);
+      tr.appendChild(count);
+      tr.appendChild(amount);
+      tbody.appendChild(tr);
+    });
+
+    var sum = document.createElement('tr');
+    sum.className = 'sum';
+    var label = document.createElement('td');
+    label.className = 'u';
+    label.textContent = '합';
+    var blank = document.createElement('td');
+    var total = document.createElement('td');
+    total.textContent = String(value);
+    sum.appendChild(label);
+    sum.appendChild(blank);
+    sum.appendChild(total);
+    tbody.appendChild(sum);
+
+    table.appendChild(tbody);
+    return table;
   }
 
   function renderFeedback(allOk, gained, unlockedLevel) {
@@ -394,6 +454,10 @@
       line.appendChild(b);
     });
     fb.appendChild(line);
+
+    if (state.mode === 'compose') {
+      fb.appendChild(composeTable(v));
+    }
 
     var rows = K.explain(v);
     if (rows.length > 1) {
@@ -485,7 +549,7 @@
     beep(unlockedLevel ? 'unlock' : allOk ? 'good' : 'bad');
     renderFeedback(allOk, gained, unlockedLevel);
     renderPlaceTable(v);
-    el.placeTable.hidden = state.mode === 'reverse';
+    el.placeTable.hidden = false;
     el.btnSubmit.textContent = '다음 문제 →';
     el.btnHint.disabled = true;
     el.btnSkip.disabled = true;
@@ -507,7 +571,7 @@
     beep('bad');
     renderFeedback(false, 0);
     renderPlaceTable(state.current);
-    el.placeTable.hidden = state.mode === 'reverse';
+    el.placeTable.hidden = false;
     el.btnSubmit.textContent = '다음 문제 →';
     el.btnHint.disabled = true;
     el.btnSkip.disabled = true;

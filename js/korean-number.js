@@ -128,6 +128,55 @@
     return parts.join(' ');
   }
 
+  /**
+   * '만이 50개, 일이 3690개인 수' 형태로 낼 때 쓰는 단위별 개수. 큰 단위부터.
+   * 개수가 0인 단위는 건너뛴다.
+   *
+   *   503690 -> [{label:'만', unitValue:10000n, count:50n},
+   *              {label:'일', unitValue:1n,     count:3690n}]
+   *
+   * 10000 미만은 만 단위로 나눠 봐야 의미가 없어서 천·백·십·일 자리로 쪼갠다.
+   * 이때 단위 이름은 한글이 아니라 숫자로 준다 — '십이 9개'는 12로 오독되기 쉽다.
+   */
+  function unitCounts(value) {
+    var n = toBigInt(value);
+    if (n === null || n === 0n) return [];
+    var rows = [];
+
+    if (n < GROUP_BASE) {
+      var rest = n;
+      [1000n, 100n, 10n, 1n].forEach(function (u) {
+        var c = rest / u;
+        rest = rest % u;
+        if (c > 0n) rows.push({ label: String(u), unitValue: u, count: c });
+      });
+      return rows;
+    }
+
+    splitGroups(n).forEach(function (g) {
+      if (g.value === 0n) return;
+      rows.push({
+        label: g.unit || '일',
+        unitValue: GROUP_BASE ** BigInt(g.index),
+        count: g.value
+      });
+    });
+    return rows;
+  }
+
+  /**
+   * 주격 조사. 받침이 있으면 '이', 없으면 '가'. '만이'·'억이'와 달리 '조'는 '조가'.
+   * 숫자로 된 단위 이름은 한글 읽기를 기준으로 판단한다. 1000 -> 천 -> '천이'
+   */
+  function subjectParticle(word) {
+    var s = String(word);
+    if (/^\d+$/.test(s)) s = toHangul(s);
+    if (!s) return '이';
+    var code = s.charCodeAt(s.length - 1);
+    if (code < 0xAC00 || code > 0xD7A3) return '이';  // 한글 음절이 아니면 기본값
+    return (code - 0xAC00) % 28 === 0 ? '가' : '이';
+  }
+
   /** 세 자리마다 쉼표. 예) 15000 -> "15,000" */
   function toComma(value) {
     var n = toBigInt(value);
@@ -243,6 +292,8 @@
     parseMixed: parseMixed,
     splitGroups: splitGroups,
     explain: explain,
-    placeTable: placeTable
+    placeTable: placeTable,
+    unitCounts: unitCounts,
+    subjectParticle: subjectParticle
   };
 });

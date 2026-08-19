@@ -307,6 +307,8 @@ body {
   transition: filter 0.12s ease, border-color 0.12s ease;
 }
 .btn:hover { filter: brightness(1.12); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.btn:disabled:hover { filter: none; border-color: var(--border); }
 .btn-primary {
   flex: 1;
   border-color: transparent;
@@ -378,6 +380,10 @@ body {
   font-variant-numeric: tabular-nums;
 }
 .breakdown tr:last-child td { border-bottom: none; }
+.breakdown tr.sum td {
+  font-weight: 700;
+  border-top: 2px solid var(--border);
+}
 .breakdown .u { color: var(--accent); font-weight: 700; width: 46px; }
 .breakdown .h { font-variant-numeric: normal; }
 
