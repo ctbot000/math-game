@@ -1,0 +1,244 @@
+/* 각도 익히기 — css/style.css 위에 얹는다 */
+
+:root {
+  --pen: #ffa94d;
+  --pen-soft: rgba(255, 169, 77, 0.22);
+  --gold-soft: rgba(255, 209, 102, 0.2);
+  --arc-soft: rgba(127, 156, 255, 0.2);
+  --shape-fill: rgba(127, 156, 255, 0.07);
+  --pro-body: rgba(170, 190, 255, 0.07);
+  --pro-edge: rgba(200, 212, 245, 0.5);
+  --pro-tick: rgba(231, 234, 242, 0.85);
+  --pro-outer: #e7eaf2;
+  --pro-inner: #9fb4ff;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --pen: #e8590c;
+    --pen-soft: rgba(232, 89, 12, 0.14);
+    --gold-soft: rgba(181, 125, 9, 0.13);
+    --arc-soft: rgba(59, 98, 224, 0.13);
+    --shape-fill: rgba(59, 98, 224, 0.05);
+    --pro-body: rgba(59, 98, 224, 0.045);
+    --pro-edge: rgba(26, 30, 41, 0.4);
+    --pro-tick: rgba(26, 30, 41, 0.8);
+    --pro-outer: #1a1e29;
+    --pro-inner: #3b62e0;
+  }
+}
+
+/* ---------- 문제 ---------- */
+
+.target {
+  text-align: center;
+  font-size: clamp(30px, 8vw, 40px);
+  font-weight: 800;
+  line-height: 1.1;
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.figure {
+  max-width: 520px;
+  margin: 4px auto 0;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fig { display: block; width: 100%; height: auto; }
+.fig.is-draggable { touch-action: none; cursor: grab; }
+.fig.is-draggable:active { cursor: grabbing; }
+.fig:focus { outline: none; }
+.fig:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 12px; }
+
+.hint-text {
+  margin: 10px 0 0;
+  padding: 9px 12px;
+  border-left: 3px solid var(--accent);
+  background: var(--surface-2);
+  border-radius: 0 10px 10px 0;
+  font-size: 13px;
+  color: var(--muted);
+  word-break: keep-all;
+}
+
+/* ---------- 그림 ---------- */
+
+.fig-arm { stroke: var(--text); stroke-width: 3; stroke-linecap: round; fill: none; }
+.fig-vertex { fill: var(--text); }
+.fig-sector { fill: var(--arc-soft); }
+.fig-arc { fill: none; stroke: var(--accent); stroke-width: 2; }
+.fig-mark.is-unknown .fig-sector { fill: var(--gold-soft); }
+.fig-mark.is-unknown .fig-arc { stroke: var(--gold); stroke-width: 2.5; }
+
+.fig-whole path { fill: none; stroke: var(--muted); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.fig-whole.is-unknown path { stroke: var(--gold); stroke-width: 2.2; }
+
+.fig-right { fill: none; stroke: var(--accent); stroke-width: 2; }
+.fig-right.is-answer { stroke: var(--good); stroke-width: 2.5; }
+
+.fig-shape-fill { fill: var(--shape-fill); }
+.fig-shape-line { fill: none; stroke: var(--text); stroke-width: 2.5; stroke-linejoin: round; }
+
+.fig-label,
+.fig-name,
+.fig-equation,
+.pro-scale text {
+  text-anchor: middle;
+  dominant-baseline: central;
+  font-variant-numeric: tabular-nums;
+}
+.fig-label { fill: var(--text); font-size: 15px; font-weight: 700; }
+.fig-label.is-whole { fill: var(--muted); }
+.fig-label.is-unknown { fill: var(--gold); font-size: 21px; font-weight: 800; }
+.fig-label.is-answer { fill: var(--good); font-size: 16px; font-weight: 800; }
+.fig-name { fill: var(--text); font-size: 17px; font-weight: 800; }
+.fig-name.is-answer { fill: var(--good); }
+.fig-equation { fill: var(--text); font-size: 34px; font-weight: 800; }
+.fig-equation .is-unknown { fill: var(--gold); }
+.fig-equation .is-answer { fill: var(--good); }
+
+.fig-chip rect { fill: var(--surface); stroke: var(--good); stroke-width: 1.2; }
+
+.fig-ref line,
+.fig-ref path,
+.fig-ref-half {
+  fill: none;
+  stroke: var(--muted);
+  stroke-width: 2;
+  stroke-dasharray: 6 5;
+}
+.fig-ref-half { stroke-dasharray: 2 5; stroke-linecap: round; }
+
+.fig-guess { stroke: var(--pen); stroke-width: 3; stroke-dasharray: 8 6; stroke-linecap: round; }
+.fig-target { stroke: var(--good); stroke-width: 3; stroke-dasharray: 8 6; stroke-linecap: round; }
+
+/* 각도기: 눈금 두 줄 — 바깥쪽은 왼쪽이 0, 안쪽은 오른쪽이 0 */
+.pro-body { fill: var(--pro-body); stroke: var(--pro-edge); stroke-width: 1.5; }
+.pro-tick { stroke: var(--pro-tick); fill: none; }
+.pro-tick.is-minor { stroke-width: 0.7; }
+.pro-tick.is-mid { stroke-width: 1; }
+.pro-tick.is-major { stroke-width: 1.4; }
+.pro-scale text { font-size: 10.5px; }
+.pro-scale.is-outer text { fill: var(--pro-outer); font-weight: 700; }
+.pro-scale.is-inner text { fill: var(--pro-inner); font-size: 10px; font-weight: 600; }
+.pro-scale.is-correct text { fill: var(--good); font-weight: 800; }
+.pro-scale.is-faded { opacity: 0.25; }
+.pro-ring { fill: none; stroke: var(--good); stroke-width: 2.2; }
+.pro-ring.is-hint { stroke: var(--gold); }
+
+/* 각 그리기: 움직이는 변 */
+.pen-arm { stroke: var(--pen); stroke-width: 3.5; stroke-linecap: round; }
+.pen-sector { fill: var(--pen-soft); }
+.pen-handle { fill: var(--pen); stroke: var(--surface); stroke-width: 3; }
+.fig.is-good .pen-arm { stroke: var(--good); }
+.fig.is-good .pen-handle { fill: var(--good); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .fig.is-draggable .pen-handle { animation: nudge-me 1.6s ease-in-out infinite; }
+  .fig.is-draggable:active .pen-handle,
+  .fig.is-draggable:focus-visible .pen-handle { animation: none; }
+  @keyframes nudge-me {
+    0%, 100% { stroke-width: 3; }
+    50% { stroke-width: 7; }
+  }
+}
+
+/* ---------- 답 ---------- */
+
+.choices {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.choice {
+  position: relative;
+  border: 1.5px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 14px 8px;
+  font: inherit;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+  word-break: keep-all;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+.choice:hover { border-color: var(--accent); }
+.choice:disabled { cursor: default; opacity: 0.5; }
+.choice:disabled:hover { border-color: var(--border); }
+.choice.is-good,
+.choice.is-good:hover { border-color: var(--good); background: var(--good-soft); color: var(--good); opacity: 1; }
+.choice.is-bad,
+.choice.is-bad:hover { border-color: var(--bad); background: var(--bad-soft); color: var(--bad); opacity: 1; }
+.choice.is-answer,
+.choice.is-answer:hover { border-color: var(--good); color: var(--good); opacity: 1; }
+.choice kbd {
+  position: absolute;
+  top: 4px;
+  right: 7px;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--muted);
+}
+@media (hover: none) { .choice kbd { display: none; } }
+
+.degree-input { position: relative; }
+.degree-input input { padding-right: 36px; font-variant-numeric: tabular-nums; }
+.degree-input .unit {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 19px;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.nudge { display: flex; justify-content: center; gap: 10px; margin-top: 12px; }
+
+/* 고르기 문제에서는 확인 버튼이 없다. 남은 버튼을 가운데로 */
+#btn-submit[hidden] + #btn-hint { margin-left: auto; }
+#btn-submit[hidden] ~ #btn-skip { margin-right: auto; }
+.nudge .btn { min-width: 92px; font-variant-numeric: tabular-nums; }
+
+/* ---------- 풀이 ---------- */
+
+.answer-line b.pen { color: var(--pen); }
+.answer-line b.c-a { color: var(--accent); }
+.answer-line b.c-b { color: var(--pen); }
+
+.overlay {
+  margin-top: 10px;
+  padding: 8px 10px 4px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+}
+.overlay .fig { max-width: 360px; margin: 0 auto; }
+.overlay-cap { margin: 0; font-size: 12px; color: var(--muted); }
+.ov-arc { fill: none; stroke-width: 3; }
+.ov-arm { stroke-width: 3.5; stroke-linecap: round; }
+.ov-arc.c-a,
+.ov-arm.c-a { stroke: var(--accent); }
+.ov-arc.c-b,
+.ov-arm.c-b { stroke: var(--pen); }
+.ov-arm.is-dashed { stroke-dasharray: 9 7; }
+
+@media (max-width: 420px) {
+  /* 좁은 화면에서는 그림을 카드 가장자리까지 넓혀 각도기 숫자를 키운다 */
+  .figure { margin-left: -10px; margin-right: -10px; }
+  .choice { font-size: 16px; padding: 13px 4px; }
+}
+
+/* 단축키 안내는 자판이 있을 때만 */
+.foot { word-break: keep-all; }
+@media (hover: none) and (pointer: coarse) {
+  .foot { display: none; }
+}

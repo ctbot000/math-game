@@ -41,6 +41,9 @@
 
 * { box-sizing: border-box; }
 
+/* hidden 은 UA 스타일일 뿐이라 display 를 정한 클래스가 이긴다. 한 번에 막아 둔다. */
+[hidden] { display: none !important; }
+
 html, body { height: 100%; }
 
 body {
@@ -67,6 +70,10 @@ body {
 
 /* ---------- 상단 ---------- */
 
+.crumb { font-size: 13px; margin-bottom: -6px; }
+.crumb a { color: var(--muted); text-decoration: none; }
+.crumb a:hover { color: var(--accent); }
+
 .topbar {
   display: flex;
   align-items: center;
@@ -90,6 +97,9 @@ body {
   box-shadow: var(--shadow);
 }
 
+/* 각도 익히기 */
+.logo-angle { background: linear-gradient(145deg, #ffa94d, #ff6b8b); font-size: 22px; }
+
 .brand h1 { margin: 0; font-size: 17px; letter-spacing: -0.2px; }
 /* 좁은 화면에서 한글이 단어 중간에서 끊기지 않도록 */
 .brand p { margin: 0; font-size: 12px; color: var(--muted); word-break: keep-all; }
@@ -109,6 +119,31 @@ body {
 .icon-btn[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
 
 .topbar-actions { display: flex; gap: 6px; flex: none; }
+
+/* ---------- 게임 목록 (index.html) ---------- */
+
+.game-list { display: flex; flex-direction: column; gap: 10px; margin: 0; padding: 0; list-style: none; }
+
+.game-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color 0.12s ease;
+}
+.game-card:hover,
+.game-card:focus-visible { border-color: var(--accent); }
+.game-card .logo { width: 48px; height: 48px; font-size: 22px; box-shadow: none; }
+.game-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.game-text b { font-size: 16px; }
+.game-text span { font-size: 13px; color: var(--muted); word-break: keep-all; }
+.game-card .go { margin-left: auto; flex: none; color: var(--muted); font-size: 20px; }
 
 /* ---------- 설정 ---------- */
 

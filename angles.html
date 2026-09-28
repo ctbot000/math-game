@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="초등학생 각도 연습 게임 — 각의 크기 비교, 예각·직각·둔각, 각도기 읽기와 각 그리기, 어림하기, 삼각형·사각형의 각까지.">
+<title>각도 익히기</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>📐</text></svg>">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/angles.css">
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="crumb"><a href="./">← 수학 게임</a></nav>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo logo-angle" aria-hidden="true">∠</span>
+      <div>
+        <h1>각도 익히기</h1>
+        <p>초등 3~4학년 · 각도기 읽기부터 삼각형 세 각의 합까지</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button type="button" class="icon-btn" id="btn-guide" aria-pressed="false">📘 규칙</button>
+      <button type="button" class="icon-btn" id="btn-sound" aria-pressed="true" title="소리 켜기/끄기">🔊</button>
+    </div>
+  </header>
+
+  <!-- 규칙 시트 -->
+  <section class="panel guide" id="guide" hidden>
+    <h2>각도 규칙</h2>
+    <ul>
+      <li><b>각</b>은 한 점에서 그은 두 반직선으로 이루어진 도형이에요. 그 점이 <b>꼭짓점</b>, 두 반직선이 <b>변</b>이에요.</li>
+      <li><b>각의 크기는 두 변이 벌어진 정도예요.</b> 변이 길다고 큰 각이 아니에요.</li>
+      <li><b>1도(1°)</b>는 직각을 똑같이 90으로 나눈 것 중 하나예요. 그래서 <code>직각 = 90°</code></li>
+      <li><b>각도기로 재기:</b> 각도기의 중심을 꼭짓점에, 밑금을 한 변에 맞춘 뒤 그 변이 가리키는
+        <b>0에서 시작하는 눈금</b>을 따라 다른 변을 읽어요. 반대쪽 눈금을 읽으면 <code>180° − 정답</code>이 나와요.</li>
+      <li><b>예각</b>은 0°보다 크고 직각보다 작은 각, <b>둔각</b>은 직각보다 크고 180°보다 작은 각이에요.</li>
+      <li><b>어림하기:</b> 직각(90°)과 그 절반(45°)을 떠올려요. 삼각자의 각 30°·45°·60°·90°도 기준이 돼요.</li>
+      <li><b>직선</b>이 이루는 각은 <code>180°</code>, <b>삼각형</b> 세 각의 크기의 합은 <code>180°</code>,
+        <b>사각형</b> 네 각의 크기의 합은 <code>360°</code>예요.</li>
+      <li>그림의 <b>ㄴ 표시</b>는 직각(90°)이라는 뜻이에요.</li>
+    </ul>
+  </section>
+
+  <!-- 설정 -->
+  <section class="panel">
+    <div class="control-row">
+      <span class="control-label">모드</span>
+      <div class="segmented" id="mode-group" role="group" aria-label="모드">
+        <button type="button" data-mode="practice" aria-pressed="true">연습</button>
+        <button type="button" data-mode="challenge" aria-pressed="false">도전 60초</button>
+      </div>
+    </div>
+    <div class="control-row">
+      <span class="control-label">단계</span>
+      <div class="segmented" id="level-group" role="group" aria-label="단계"></div>
+    </div>
+    <p class="level-hint" id="level-hint"></p>
+  </section>
+
+  <!-- 통계 -->
+  <dl class="stats">
+    <div class="stat"><dt>점수</dt><dd id="stat-score">0</dd></div>
+    <div class="stat"><dt>연속</dt><dd id="stat-streak">0</dd></div>
+    <div class="stat"><dt>정확도</dt><dd id="stat-accuracy">—</dd></div>
+    <div class="stat" id="stat-right-tile"><dt id="stat-right-label">최고 연속</dt><dd id="stat-right">0</dd></div>
+  </dl>
+
+  <!-- 문제 -->
+  <main class="card" id="card">
+    <p class="prompt" id="prompt">두 각 중 더 큰 각을 골라 보세요</p>
+    <p class="target" id="target" hidden></p>
+    <div class="figure" id="figure"></div>
+    <p class="hint-text" id="hint-text" hidden></p>
+
+    <form id="answer-form" autocomplete="off">
+      <div class="choices" id="choices" hidden></div>
+
+      <div class="fields">
+        <div class="field" id="field-degrees" hidden>
+          <div class="field-head">
+            <label for="input-degrees" id="label-degrees">각도</label>
+            <span class="eg" id="eg-degrees">숫자만 써도 돼요</span>
+          </div>
+          <div class="degree-input">
+            <input id="input-degrees" type="text" inputmode="numeric" spellcheck="false" maxlength="6">
+            <span class="unit" aria-hidden="true">°</span>
+          </div>
+          <p class="field-msg" id="msg-degrees"></p>
+        </div>
+      </div>
+
+      <div class="nudge" id="nudge" hidden>
+        <button type="button" class="btn btn-ghost" data-turn="1" aria-label="시계 반대 방향으로 1° 돌리기">◀ 1°</button>
+        <button type="button" class="btn btn-ghost" data-turn="-1" aria-label="시계 방향으로 1° 돌리기">1° ▶</button>
+      </div>
+
+      <div class="feedback" id="feedback" hidden></div>
+
+      <div class="actions">
+        <button type="submit" class="btn btn-primary" id="btn-submit">확인</button>
+        <button type="button" class="btn btn-ghost" id="btn-hint" aria-pressed="false">힌트</button>
+        <button type="button" class="btn btn-ghost" id="btn-skip">모르겠어요</button>
+      </div>
+    </form>
+
+    <div class="result" id="result" hidden>
+      <h2 id="result-title">시간 종료!</h2>
+      <div class="big" id="result-score">0</div>
+      <p id="result-detail"></p>
+      <div class="actions">
+        <button type="button" class="btn btn-primary" id="btn-restart">다시 도전</button>
+      </div>
+    </div>
+  </main>
+
+  <p class="foot"><kbd>Enter</kbd> 확인·다음 문제 · <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> 고르기 ·
+    <kbd>←</kbd><kbd>→</kbd> 변을 1°씩 돌리기</p>
+</div>
+
+<script src="js/angle.js"></script>
+<script src="js/angle-game.js"></script>
+</body>
+</html>
