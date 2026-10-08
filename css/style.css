@@ -99,6 +99,10 @@ body {
 
 /* 각도 익히기 */
 .logo-angle { background: linear-gradient(145deg, #ffa94d, #ff6b8b); font-size: 22px; }
+/* 쌓기나무 규칙 찾기 */
+.logo-stack { background: linear-gradient(145deg, #e0a85a, #b9773a); }
+.logo-stack svg { width: 26px; height: 26px; }
+.game-card .logo-stack svg { width: 30px; height: 30px; }
 
 .brand h1 { margin: 0; font-size: 17px; letter-spacing: -0.2px; }
 /* 좁은 화면에서 한글이 단어 중간에서 끊기지 않도록 */

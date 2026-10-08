@@ -1,0 +1,160 @@
+/* 쌓기나무 규칙 찾기 — css/style.css 위에 얹는다 */
+
+:root {
+  --cube-edge: #6b4a22;
+  --new-layer: #ffd166;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --cube-edge: #7a5426;
+    --new-layer: #e9a516;
+  }
+}
+
+/* ---------- 그림 ---------- */
+
+.figure {
+  margin: 4px auto 0;
+  display: flex;
+  justify-content: center;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.fig { display: block; width: 100%; height: auto; }
+
+.cube path { stroke: var(--cube-edge); stroke-width: 1.1; stroke-linejoin: round; }
+.cube.is-dim { opacity: 0.35; }
+.fig-name {
+  fill: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+.fig-count {
+  fill: var(--accent);
+  font-size: 15px;
+  font-weight: 800;
+  text-anchor: middle;
+  dominant-baseline: central;
+  font-variant-numeric: tabular-nums;
+}
+.fig-count.is-unknown { fill: var(--gold); font-size: 22px; }
+.fig-count.is-answer { fill: var(--good); }
+.fig-dots { fill: var(--muted); font-size: 20px; text-anchor: middle; dominant-baseline: central; }
+.fig-arrow { stroke: var(--muted); stroke-width: 2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.fig-slot { fill: none; stroke: var(--gold); stroke-width: 2; stroke-dasharray: 6 5; }
+.fig-slot-q { fill: var(--gold); font-size: 30px; font-weight: 800; text-anchor: middle; dominant-baseline: central; }
+
+/* 층별 색 안내 */
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  border-radius: 999px;
+  padding: 3px 10px 3px 6px;
+  font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.legend i {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  border: 1px solid var(--cube-edge);
+}
+
+.hint-text {
+  margin: 10px 0 0;
+  padding: 9px 12px;
+  border-left: 3px solid var(--accent);
+  background: var(--surface-2);
+  border-radius: 0 10px 10px 0;
+  font-size: 13px;
+  color: var(--muted);
+  word-break: keep-all;
+}
+
+/* ---------- 답 ---------- */
+
+.field-head .label { font-size: 13px; font-weight: 600; word-break: keep-all; }
+
+/* 「□ + □ + □ = □」 */
+.layer-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 6px 5px;
+}
+.layer-row .op { font-size: 20px; font-weight: 700; color: var(--muted); }
+.field .layer-row input {
+  width: 3.4em;
+  padding: 10px 4px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.field .layer-row input.is-total { width: 4.4em; border-color: var(--accent); }
+.field .layer-row input.is-good { border-color: var(--good); background: var(--good-soft); }
+.field .layer-row input.is-bad { border-color: var(--bad); background: var(--bad-soft); }
+
+.count-input { position: relative; }
+.count-input input { padding-right: 40px; font-variant-numeric: tabular-nums; }
+.count-input .unit {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  color: var(--muted);
+  pointer-events: none;
+}
+
+/* ---------- 풀이 ---------- */
+
+.answer-line b.is-new { color: var(--new-layer); }
+
+.seq {
+  margin-top: 10px;
+  overflow-x: auto;
+}
+.seq table { border-collapse: collapse; margin: 0 auto; font-variant-numeric: tabular-nums; }
+.seq th {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: left;
+  padding: 4px 8px 4px 0;
+  white-space: nowrap;
+}
+.seq td {
+  text-align: center;
+  padding: 4px 7px;
+  font-size: 14px;
+  min-width: 34px;
+  white-space: nowrap;
+}
+.seq tr.diff td { color: var(--new-layer); font-size: 13px; font-weight: 700; }
+.seq td.is-asked { color: var(--good); font-weight: 800; }
+.seq tr.count td { border-bottom: 1px solid var(--border); }
+
+@media (max-width: 420px) {
+  .figure { margin-left: -10px; margin-right: -10px; }
+  .field .layer-row input { width: 2.9em; font-size: 16px; }
+  .field .layer-row input.is-total { width: 3.8em; }
+}
+
+.foot { word-break: keep-all; }
+@media (hover: none) and (pointer: coarse) {
+  .foot { display: none; }
+}

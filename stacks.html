@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="초등 쌓기나무 규칙 찾기 — 층별로 세기, 늘어나는 수, 다음 모양과 몇째 모양의 개수 구하기.">
+<title>쌓기나무 규칙 찾기</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🧱</text></svg>">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/stacks.css">
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="crumb"><a href="./">← 수학 게임</a></nav>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo logo-stack" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 9h10v10H4z" fill="#f3d6a4"/><path d="M4 9l5-4h10l-5 4z" fill="#fff3dc"/><path d="M14 9l5-4v10l-5 4z" fill="#d9a865"/></svg></span>
+      <div>
+        <h1>쌓기나무 규칙 찾기</h1>
+        <p>초등 4학년 · 층별로 세어 식으로 쓰고, 늘어나는 규칙으로 개수 구하기</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button type="button" class="icon-btn" id="btn-guide" aria-pressed="false">📘 규칙</button>
+      <button type="button" class="icon-btn" id="btn-sound" aria-pressed="true" title="소리 켜기/끄기">🔊</button>
+    </div>
+  </header>
+
+  <!-- 규칙 시트 -->
+  <section class="panel guide" id="guide" hidden>
+    <h2>세는 법</h2>
+    <ul>
+      <li><b>위층부터 한 층씩</b> 세어 더해요. 그림에서 <b>뒤에 가려 안 보이는 쌓기나무</b>도 있어요.
+        아래층이 받치고 있어야 위층을 쌓을 수 있으니까요.</li>
+      <li><b>피라미드</b>는 층이 정사각형이에요. 위에서부터 <code>1×1, 2×2, 3×3, …</code> 그래서
+        넷째 모양은 <code>1 + 4 + 9 + 16 = 30</code>개예요.</li>
+      <li><b>계단</b>은 위에서부터 <code>1, 2, 3, …</code>개, <b>모서리 계단</b>은 층마다 작은 계단이라
+        <code>1, 1+2, 1+2+3, …</code>개예요.</li>
+      <li>다음 모양이 되면 <b>맨 아래에 더 큰 층이 하나 새로 깔려요.</b> 그래서 늘어나는 수는 매번 달라요 —
+        피라미드는 <code>+4, +9, +16, +25, …</code></li>
+      <li>식에는 <b>층마다 놓인 개수</b>를 써요. <code>1 + 5 + 14</code>처럼 앞 모양들의 전체 개수를 쓰면 안 돼요.</li>
+    </ul>
+  </section>
+
+  <!-- 설정 -->
+  <section class="panel">
+    <div class="control-row">
+      <span class="control-label">모드</span>
+      <div class="segmented" id="mode-group" role="group" aria-label="모드">
+        <button type="button" data-mode="practice" aria-pressed="true">연습</button>
+        <button type="button" data-mode="challenge" aria-pressed="false">도전 60초</button>
+      </div>
+    </div>
+    <div class="control-row">
+      <span class="control-label">단계</span>
+      <div class="segmented" id="level-group" role="group" aria-label="단계"></div>
+    </div>
+    <p class="level-hint" id="level-hint"></p>
+  </section>
+
+  <!-- 통계 -->
+  <dl class="stats">
+    <div class="stat"><dt>점수</dt><dd id="stat-score">0</dd></div>
+    <div class="stat"><dt>연속</dt><dd id="stat-streak">0</dd></div>
+    <div class="stat"><dt>정확도</dt><dd id="stat-accuracy">—</dd></div>
+    <div class="stat" id="stat-right-tile"><dt id="stat-right-label">최고 연속</dt><dd id="stat-right">0</dd></div>
+  </dl>
+
+  <!-- 문제 -->
+  <main class="card" id="card">
+    <p class="prompt" id="prompt"></p>
+    <div class="figure" id="figure"></div>
+    <div class="legend" id="legend" hidden></div>
+    <p class="hint-text" id="hint-text" hidden></p>
+
+    <form id="answer-form" autocomplete="off">
+      <div class="fields">
+        <div class="field" id="field-layers" hidden>
+          <div class="field-head">
+            <span class="label" id="label-layers">위층부터 한 층씩</span>
+            <span class="eg">층마다 놓인 개수 → 모두 더한 수</span>
+          </div>
+          <div class="layer-row" id="layer-row"></div>
+          <p class="field-msg" id="msg-layers"></p>
+        </div>
+
+        <div class="field" id="field-count" hidden>
+          <div class="field-head">
+            <label for="input-count" id="label-count">쌓기나무 수</label>
+            <span class="eg">숫자만 써도 돼요</span>
+          </div>
+          <div class="count-input">
+            <input id="input-count" type="text" inputmode="numeric" spellcheck="false" maxlength="8">
+            <span class="unit" aria-hidden="true">개</span>
+          </div>
+          <p class="field-msg" id="msg-count"></p>
+        </div>
+      </div>
+
+      <div class="feedback" id="feedback" hidden></div>
+
+      <div class="actions">
+        <button type="submit" class="btn btn-primary" id="btn-submit">확인</button>
+        <button type="button" class="btn btn-ghost" id="btn-hint" aria-pressed="false">힌트</button>
+        <button type="button" class="btn btn-ghost" id="btn-skip">모르겠어요</button>
+      </div>
+    </form>
+
+    <div class="result" id="result" hidden>
+      <h2 id="result-title">시간 종료!</h2>
+      <div class="big" id="result-score">0</div>
+      <p id="result-detail"></p>
+      <div class="actions">
+        <button type="button" class="btn btn-primary" id="btn-restart">다시 도전</button>
+      </div>
+    </div>
+  </main>
+
+  <p class="foot"><kbd>Enter</kbd> 확인·다음 문제 · 칸 사이는 <kbd>Tab</kbd></p>
+</div>
+
+<script src="js/stack.js"></script>
+<script src="js/stack-game.js"></script>
+</body>
+</html>

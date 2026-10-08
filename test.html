@@ -25,10 +25,13 @@
 <script src="js/korean-number.test.js"></script>
 <script src="js/angle.js"></script>
 <script src="js/angle.test.js"></script>
+<script src="js/stack.js"></script>
+<script src="js/stack.test.js"></script>
 <script>
   var suites = [
     { name: 'korean-number.js', results: window.KOREAN_NUMBER_TEST_RESULTS || [] },
-    { name: 'angle.js', results: window.ANGLE_TEST_RESULTS || [] }
+    { name: 'angle.js', results: window.ANGLE_TEST_RESULTS || [] },
+    { name: 'stack.js', results: window.STACK_TEST_RESULTS || [] }
   ];
   var all = [].concat.apply([], suites.map(function (s) { return s.results; }));
   var failedCount = all.filter(function (r) { return !r.pass; }).length;
