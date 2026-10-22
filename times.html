@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="초등 시간 계산 — 시간·분·초 바꾸기, 더 긴 시간 고르기, 몇 분 몇 초 차이 구하기.">
+<title>시간 계산</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>⏱️</text></svg>">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/times.css">
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="crumb"><a href="./">← 수학 게임</a></nav>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo logo-time" aria-hidden="true">⏱</span>
+      <div>
+        <h1>시간 계산</h1>
+        <p>초등 3학년 · 시간·분·초 바꾸기, 비교하기, 몇 분 몇 초 차이 구하기</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button type="button" class="icon-btn" id="btn-guide" aria-pressed="false">📘 규칙</button>
+      <button type="button" class="icon-btn" id="btn-sound" aria-pressed="true" title="소리 켜기/끄기">🔊</button>
+    </div>
+  </header>
+
+  <!-- 규칙 시트 -->
+  <section class="panel guide" id="guide" hidden>
+    <h2>바꾸는 법</h2>
+    <div class="unit-scale">
+      <span><b>1시간</b> = 60분</span>
+      <span><b>1분</b> = 60초</span>
+      <span><b>1시간</b> = 3600초</span>
+    </div>
+    <ul>
+      <li><b>100이 아니라 60이에요.</b> <code>115분</code>은 1시간 15분이 아니에요.
+        60분씩 묶으면 <code>115분 = 60분 + 55분 = 1시간 55분</code></li>
+      <li>큰 단위를 작은 단위로 바꿀 때는 60을 곱해 더해요.
+        <code>1시간 3분 46초 = 60분 + 3분 + 46초 = 63분 46초</code></li>
+      <li>비교하거나 뺄 때는 <b>단위를 똑같이 맞춰요.</b> 둘 다 「□분 □초」로 바꾸면 쉬워요.</li>
+      <li>초끼리 뺄 수 없으면 <b>1분을 60초로 바꿔 내려요.</b>
+        <code>115분 0초 − 63분 46초 = 114분 60초 − 63분 46초 = 51분 14초</code></li>
+    </ul>
+  </section>
+
+  <!-- 설정 -->
+  <section class="panel">
+    <div class="control-row">
+      <span class="control-label">모드</span>
+      <div class="segmented" id="mode-group" role="group" aria-label="모드">
+        <button type="button" data-mode="practice" aria-pressed="true">연습</button>
+        <button type="button" data-mode="challenge" aria-pressed="false">도전 60초</button>
+      </div>
+    </div>
+    <div class="control-row">
+      <span class="control-label">단계</span>
+      <div class="segmented" id="level-group" role="group" aria-label="단계"></div>
+    </div>
+    <p class="level-hint" id="level-hint"></p>
+  </section>
+
+  <!-- 통계 -->
+  <dl class="stats">
+    <div class="stat"><dt>점수</dt><dd id="stat-score">0</dd></div>
+    <div class="stat"><dt>연속</dt><dd id="stat-streak">0</dd></div>
+    <div class="stat"><dt>정확도</dt><dd id="stat-accuracy">—</dd></div>
+    <div class="stat" id="stat-right-tile"><dt id="stat-right-label">최고 연속</dt><dd id="stat-right">0</dd></div>
+  </dl>
+
+  <!-- 문제 -->
+  <main class="card" id="card">
+    <p class="prompt" id="prompt"></p>
+
+    <div class="story" id="story" hidden>
+      <span class="avatar" aria-hidden="true">🧒</span>
+      <div>
+        <b class="story-name" id="story-name"></b>
+        <p class="bubble" id="story-text"></p>
+      </div>
+    </div>
+
+    <div class="pair" id="pair" hidden></div>
+    <p class="hint-text" id="hint-text" hidden></p>
+
+    <form id="answer-form" autocomplete="off">
+      <div class="fields">
+        <div class="field" id="field-pick" hidden>
+          <div class="field-head">
+            <span class="label" id="label-pick">어느 것을</span>
+          </div>
+          <div class="picks" id="picks" role="group" aria-labelledby="label-pick"></div>
+          <p class="field-msg" id="msg-pick"></p>
+        </div>
+
+        <div class="field" id="field-time" hidden>
+          <div class="field-head">
+            <span class="label" id="label-time">답</span>
+            <span class="eg">빈칸에 숫자만 · 없으면 0</span>
+          </div>
+          <div class="time-row" id="time-row"></div>
+          <p class="field-msg" id="msg-time"></p>
+        </div>
+      </div>
+
+      <div class="feedback" id="feedback" hidden></div>
+
+      <div class="actions">
+        <button type="submit" class="btn btn-primary" id="btn-submit">확인</button>
+        <button type="button" class="btn btn-ghost" id="btn-hint" aria-pressed="false">힌트</button>
+        <button type="button" class="btn btn-ghost" id="btn-skip">모르겠어요</button>
+      </div>
+    </form>
+
+    <div class="result" id="result" hidden>
+      <h2 id="result-title">시간 종료!</h2>
+      <div class="big" id="result-score">0</div>
+      <p id="result-detail"></p>
+      <div class="actions">
+        <button type="button" class="btn btn-primary" id="btn-restart">다시 도전</button>
+      </div>
+    </div>
+  </main>
+
+  <p class="foot"><kbd>Enter</kbd> 확인·다음 문제 · 칸 사이는 <kbd>Tab</kbd> · 고르기는 <kbd>1</kbd> <kbd>2</kbd></p>
+</div>
+
+<script src="js/duration.js"></script>
+<script src="js/time-game.js"></script>
+</body>
+</html>
