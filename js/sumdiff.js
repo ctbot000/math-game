@@ -10,6 +10,11 @@
  * 문제 하나는 {kind, total, diff, big, small, ...} 이고, 화면에 그릴 식은 lines 로 준다.
  * lines 는 줄의 배열, 줄은 조각의 배열이다 — 글자 조각은 문자열, 빈칸은 {input: 키, unit?}.
  *
+ * 세 사람 문제도 다룬다 (학습지 다음 문제):
+ *   「예린, 준서, 현빈 세 사람이 모은 우표는 모두 915장. 준서는 예린이보다 145장 더, 현빈이는 준서의 2배.」
+ *   △(예린) + (△ + 145) + (△ + 145) + (△ + 145) = 915 → △ 네 개 = 915 − 435 = 480 → △ = 120,
+ *   □(준서) = 265, ○(현빈) = 530
+ *
  * 브라우저에서는 window.SumDiff, Node 에서는 module.exports 로 노출된다.
  */
 (function (root, factory) {
@@ -23,7 +28,9 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
 
-  var KINDS = ['remove', 'half', 'guided', 'story'];
+  var KINDS = ['remove', 'half', 'guided', 'story', 'tguided', 'tstory'];
+  var THREE_KINDS = ['tguided', 'tstory'];
+  var CIRCLE = '○';
   var BIG = '□';
   var SMALL = '△';
   var MINUS = '−';
@@ -174,6 +181,7 @@
   /** kind 에 맞는 문제 하나 */
   function generate(kind, rng) {
     rng = rng || Math.random;
+    if (THREE_KINDS.indexOf(kind) >= 0) return generateThree(kind, rng);
     var n = pickNumbers(rng, (kind === 'remove' || kind === 'guided') && rng() < 0.75);
     var q = { kind: kind, total: n.total, diff: n.diff, big: n.big, small: n.small };
     if (kind === 'story' || kind === 'guided') {
@@ -212,6 +220,7 @@
 
   /** 학습지 문장. 「어느 마을의 인구는 581명이고, 남자가 여자보다 183명 더 많습니다. …」 */
   function storyText(q) {
+    if (q.three) return threeStoryText(q);
     var s = q.scene;
     var rel = q.fewer
       ? josa(smallName(q), '이가') + ' ' + bigName(q) + '보다 ' + q.diff + s.unit + ' 더 적습니다.'
@@ -259,6 +268,188 @@
     return keys;
   }
 
+
+  // ------------------------------------------------------------------ 세 사람
+
+  var PERSON_KEYS = ['a', 'b', 'c'];
+  var PERSON_SYMBOL = { a: SMALL, b: BIG, c: CIRCLE };
+  var THREE_NAMES = ['예린', '준서', '현빈', '지우', '민준', '서연', '하준', '수아', '도윤', '은우'];
+  var THREE_ITEMS = [
+    { name: '우표', unit: '장' },
+    { name: '딱지', unit: '장' },
+    { name: '스티커', unit: '장' },
+    { name: '구슬', unit: '개' },
+    { name: '칭찬 도장', unit: '개' }
+  ];
+
+  /** 받침이 있는 이름에는 「이」 를 붙여 부른다. 예린 → 예린이, 준서 → 준서 */
+  function callName(n) {
+    return hasBatchim(n) ? n + '이' : n;
+  }
+
+  /**
+   * △ 40~199, 차 11~199, 합 = △ × 4 + 차 × 3 은 200~999.
+   * 학습지처럼 □ = △ + 차, ○ = □ × 2.
+   */
+  function generateThree(kind, rng) {
+    var a, d, total;
+    for (var tries = 0; tries < 200; tries++) {
+      a = randInt(rng, 40, 199);
+      d = randInt(rng, 11, 199);
+      total = a * 4 + d * 3;
+      if (total >= 200 && total <= 999) break;
+    }
+    if (total < 200 || total > 999) { a = 120; d = 145; total = 915; }
+    var pool = THREE_NAMES.slice();
+    var names = [];
+    for (var i = 0; i < 3; i++) names.push(pool.splice(Math.floor(rng() * pool.length), 1)[0]);
+    var r = rng();
+    var q = {
+      kind: kind, three: true, a: a, d: d, b: a + d, c: (a + d) * 2, total: total,
+      names: names,
+      item: THREE_ITEMS[Math.floor(rng() * THREE_ITEMS.length)],
+      ask: r < 0.6 ? 'c' : r < 0.8 ? 'b' : 'a'       // 학습지처럼 ○ 를 묻는 경우를 더 자주
+    };
+    finishThree(q);
+    return q;
+  }
+
+  function finishThree(q) {
+    q.answer = q.kind === 'tguided'
+      ? { four: q.a * 4, two: q.a * 2, a: q.a, b: q.b, c: q.c }
+      : { v: q[q.ask] };
+    q.lines = threeLines(q);
+  }
+
+  /** 학습지 문제 그대로 (세 사람) */
+  function worksheetThree() {
+    var q = {
+      kind: 'tstory', three: true, a: 120, d: 145, b: 265, c: 530, total: 915,
+      names: ['예린', '준서', '현빈'], item: THREE_ITEMS[0], ask: 'c'
+    };
+    finishThree(q);
+    return q;
+  }
+
+  function threeStoryText(q) {
+    var n = q.names;
+    var u = q.item.unit;
+    var asked = callName(n[PERSON_KEYS.indexOf(q.ask)]);
+    return n.join(', ') + ' 세 사람이 모은 ' + josa(q.item.name, '은는') + ' 모두 ' + q.total + u + '입니다. ' +
+      josa(callName(n[1]), '은는') + ' ' + callName(n[0]) + '보다 ' + josa(q.d + u, '을를') + ' 더 모았고, ' +
+      josa(callName(n[2]), '은는') + ' ' + callName(n[1]) + '의 2배만큼을 모았습니다. ' +
+      josa(asked, '이가') + ' 모은 ' + josa(q.item.name, '은는') + ' 몇 ' + u + '일까요?';
+  }
+
+  function symbolNote(q) {
+    return PERSON_KEYS.map(function (k, i) { return PERSON_SYMBOL[k] + ' = ' + q.names[i]; }).join(',  ');
+  }
+
+  function threeLines(q) {
+    var D = q.d;
+    var T = q.total;
+    var unit = SMALL + ' + ' + D;
+    if (q.kind === 'tstory') {
+      var i = PERSON_KEYS.indexOf(q.ask);
+      return [[q.names[i] + ': ', { input: 'v', unit: q.item.unit }]];
+    }
+    return [
+      [symbolNote(q)],
+      [BIG + ' = ' + unit + ',  ' + CIRCLE + ' = ' + BIG + ' × 2 = ' + BIG + ' + ' + BIG],
+      [SMALL + ' + (' + unit + ') + (' + unit + ') + (' + unit + ') = ' + T],
+      [SMALL + ' + ' + SMALL + ' + ' + SMALL + ' + ' + SMALL + ' = ' + T + ' ' + MINUS + ' ' + D + ' ' + MINUS + ' ' + D + ' ' + MINUS + ' ' + D + ' = ', { input: 'four' }],
+      [SMALL + ' + ' + SMALL + ' = ', { input: 'two' }],
+      [SMALL + ' = ', { input: 'a' }],
+      [BIG + ' = ' + unit + ' = ', { input: 'b' }],
+      [CIRCLE + ' = ' + BIG + ' × 2 = ', { input: 'c' }]
+    ];
+  }
+
+  /**
+   * 세 사람 채점.
+   *   tguided — 처음 틀린 칸이 step. four: subOnce·subTwice(차를 덜 뺌)·뺄셈 실수,
+   *             two·a: notHalved·halfWrong, b: bigSame·bigSub·bigWrong, c: cPlus2·cFromA·cWrong
+   *   tstory  — wrongPerson(다른 사람의 수) · sumCheck
+   */
+  function gradeThree(q, value) {
+    var ok = {};
+    var correct = true;
+    Object.keys(q.answer).forEach(function (k) {
+      ok[k] = value[k] === q.answer[k];
+      if (!ok[k]) correct = false;
+    });
+    var res = { correct: correct, ok: ok, mistake: null };
+    if (correct) return res;
+    if (q.kind === 'tstory') {
+      var other = PERSON_KEYS.filter(function (k) { return k !== q.ask && q[k] === value.v; })[0];
+      res.mistake = other ? 'wrongPerson' : 'sumCheck';
+      if (other) res.other = other;
+      return res;
+    }
+    var T = q.total;
+    var D = q.d;
+    if (!ok.four) {
+      res.step = 'four';
+      res.mistake = value.four === T - D ? 'subOnce'
+        : value.four === T - D * 2 ? 'subTwice'
+          : subMistake(T, D * 3, value.four);
+    } else if (!ok.two) {
+      res.step = 'two';
+      res.mistake = halfMistake(q.a * 4, value.two);
+    } else if (!ok.a) {
+      res.step = 'a';
+      res.mistake = halfMistake(q.a * 2, value.a);
+    } else if (!ok.b) {
+      res.step = 'b';
+      res.mistake = value.b === q.a ? 'bigSame' : value.b === q.a - D ? 'bigSub' : 'bigWrong';
+    } else {
+      res.step = 'c';
+      res.mistake = value.c === q.b + 2 ? 'cPlus2' : value.c === q.a * 2 ? 'cFromA' : 'cWrong';
+    }
+    return res;
+  }
+
+  function threeSolutionLines(q) {
+    var D = q.d;
+    var T = q.total;
+    var unit = SMALL + ' + ' + D;
+    var last = q.names[2];
+    return [
+      symbolNote(q) + (hasBatchim(last) ? '이' : '') + '라고 하면',
+      BIG + ' = ' + unit + ',  ' + CIRCLE + ' = ' + BIG + ' × 2 = (' + unit + ') + (' + unit + ')',
+      SMALL + ' + (' + unit + ') + (' + unit + ') + (' + unit + ') = ' + T,
+      SMALL + ' 네 개 = ' + T + ' ' + MINUS + ' ' + D * 3 + ' = ' + q.a * 4 + '  (' + D + ' + ' + D + ' + ' + D + ' = ' + D * 3 + ')',
+      SMALL + ' + ' + SMALL + ' = ' + q.a * 2 + '  (' + q.a * 4 + '의 반),  ' + SMALL + ' = ' + q.a + '  (' + q.a * 2 + '의 반)',
+      BIG + ' = ' + q.a + ' + ' + D + ' = ' + q.b,
+      CIRCLE + ' = ' + q.b + ' × 2 = ' + q.b + ' + ' + q.b + ' = ' + q.c,
+      '확인: ' + q.a + ' + ' + q.b + ' + ' + q.c + ' = ' + T
+    ];
+  }
+
+  // ------------------------------------------------------------------ 테이프 그림
+
+  /**
+   * 테이프 그림의 줄. [{label, value, segs: [{kind: 'unit'|'diff', v}]}]
+   * 두 수: 큰 수 = 작은 수 + 차. 세 사람: △ / △ + 차 / (△ + 차) × 2.
+   */
+  function tapeRows(q) {
+    if (q.three) {
+      var u = { kind: 'unit', v: q.a };
+      var df = { kind: 'diff', v: q.d };
+      return [
+        { label: q.names[0] + ' (' + SMALL + ')', value: q.a, segs: [u] },
+        { label: q.names[1] + ' (' + BIG + ')', value: q.b, segs: [u, df] },
+        { label: q.names[2] + ' (' + CIRCLE + ')', value: q.c, segs: [u, df, u, df] }
+      ];
+    }
+    var big = q.scene ? bigName(q) + ' (' + BIG + ')' : BIG;
+    var small = q.scene ? smallName(q) + ' (' + SMALL + ')' : SMALL;
+    return [
+      { label: big, value: q.big, segs: [{ kind: 'unit', v: q.small }, { kind: 'diff', v: q.diff }] },
+      { label: small, value: q.small, segs: [{ kind: 'unit', v: q.small }] }
+    ];
+  }
+
   // ------------------------------------------------------------------ 입력·채점
 
   /** '199', '１９９', '199명' 을 읽는다. 빈칸이면 {error: 'empty'}, 숫자가 아니면 {error: 'format'}. */
@@ -280,6 +471,7 @@
    *   step — guided 에서 처음 틀린 칸
    */
   function grade(q, value) {
+    if (q.three) return gradeThree(q, value);
     var ok = {};
     var correct = true;
     Object.keys(q.answer).forEach(function (k) {
@@ -331,6 +523,7 @@
    * 서술 문제가 아니면 이름 없이 □·△ 만 쓴다.
    */
   function solutionLines(q) {
+    if (q.three) return threeSolutionLines(q);
     var T = q.total;
     var D = q.diff;
     var R = T - D;
@@ -358,12 +551,20 @@
 
   /** 서술 문제의 답 한 줄. 「남자: 382명, 여자: 199명」 */
   function answerText(q) {
+    if (q.three) {
+      return q.names.map(function (n, i) { return n + ' ' + q[PERSON_KEYS[i]] + q.item.unit; }).join(', ');
+    }
     var u = q.scene.unit;
     return q.scene.a + ': ' + q.answer.a + u + ', ' + q.scene.b + ': ' + q.answer.b + u;
   }
 
   return {
     KINDS: KINDS,
+    THREE_KINDS: THREE_KINDS,
+    CIRCLE: CIRCLE,
+    worksheetThree: worksheetThree,
+    callName: callName,
+    tapeRows: tapeRows,
     SCENES: SCENES,
     BIG: BIG,
     SMALL: SMALL,

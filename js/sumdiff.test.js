@@ -78,7 +78,7 @@
   eq(r4.step + ':' + r4.mistake, 'big:bigSub', '단계 풀이: 차를 뺌');
 
   // ---- 문제 만들기 -----------------------------------------------------
-  S.KINDS.forEach(function (kind) {
+  S.KINDS.filter(function (k) { return S.THREE_KINDS.indexOf(k) < 0; }).forEach(function (kind) {
     var rng = S.mulberry32(kind.length * 977);
     all(400, kind + ' 문제의 수와 답', function () {
       var q = S.generate(kind, rng);
@@ -111,6 +111,53 @@
   eq(S.storyText(fewer),
     '형과 동생이 가진 구슬은 모두 300개이고, 형이 동생보다 40개 더 적습니다. 형과 동생이 가진 구슬은 각각 몇 개인지 구해 보세요.',
     '「더 적습니다」 문장');
+
+
+  // ---- 세 사람 --------------------------------------------------------
+  var w3 = S.worksheetThree();
+  eq(S.storyText(w3),
+    '예린, 준서, 현빈 세 사람이 모은 우표는 모두 915장입니다. 준서는 예린이보다 145장을 더 모았고, ' +
+    '현빈이는 준서의 2배만큼을 모았습니다. 현빈이가 모은 우표는 몇 장일까요?',
+    '세 사람 학습지 문장');
+  eq(w3.answer.v + ':' + w3.a + ':' + w3.b, '530:120:265', '세 사람 학습지 답: 현빈 530 (예린 120, 준서 265)');
+  eq(S.solutionLines(w3)[3], '△ 네 개 = 915 − 435 = 480  (145 + 145 + 145 = 435)', '세 사람 풀이: △ 네 개');
+  eq(S.solutionLines(w3)[7], '확인: 120 + 265 + 530 = 915', '세 사람 풀이: 확인');
+  eq(S.grade(w3, { v: 530 }).correct, true, '세 사람 정답');
+  eq(S.grade(w3, { v: 265 }).mistake + ':' + S.grade(w3, { v: 120 }).mistake + ':' + S.grade(w3, { v: 531 }).mistake,
+    'wrongPerson:wrongPerson:sumCheck', '다른 사람의 수를 답함');
+  eq(S.callName('예린') + ' ' + S.callName('준서'), '예린이 준서', '이름 부르기');
+
+  var tg = { kind: 'tguided', three: true, a: 120, d: 145, b: 265, c: 530, total: 915,
+    names: ['예린', '준서', '현빈'], item: { name: '우표', unit: '장' }, ask: 'c',
+    answer: { four: 480, two: 240, a: 120, b: 265, c: 530 } };
+  function step(v) { var r = S.grade(tg, v); return r.step + ':' + r.mistake; }
+  eq(step({ four: 770, two: 385, a: 192, b: 337, c: 674 }), 'four:subOnce', '세 사람: 145를 한 번만 뺌');
+  eq(step({ four: 625, two: 0, a: 0, b: 0, c: 0 }), 'four:subTwice', '세 사람: 145를 두 번만 뺌');
+  eq(step({ four: 480, two: 480, a: 0, b: 0, c: 0 }), 'two:notHalved', '세 사람: 반으로 안 나눔');
+  eq(step({ four: 480, two: 240, a: 120, b: 120, c: 0 }), 'b:bigSame', '세 사람: □ 에 차를 안 더함');
+  eq(step({ four: 480, two: 240, a: 120, b: 265, c: 267 }), 'c:cPlus2', '세 사람: ×2 를 +2 로');
+  eq(step({ four: 480, two: 240, a: 120, b: 265, c: 240 }), 'c:cFromA', '세 사람: △ 의 2배로');
+
+  S.THREE_KINDS.forEach(function (kind) {
+    var rng = S.mulberry32(kind.length * 31);
+    all(400, kind + ' 문제의 수와 답', function () {
+      var q = S.generate(kind, rng);
+      if (q.b !== q.a + q.d || q.c !== q.b * 2 || q.a + q.b + q.c !== q.total) return 'rel ' + JSON.stringify(q);
+      if (q.total < 200 || q.total > 999) return 'range ' + q.total;
+      if (q.names[0] === q.names[1] || q.names[1] === q.names[2] || q.names[0] === q.names[2]) return 'names ' + q.names;
+      var keys = S.inputKeys(q);
+      if (keys.join() !== Object.keys(q.answer).join()) return 'keys ' + keys;
+      var ans = {};
+      keys.forEach(function (k) { ans[k] = q.answer[k]; });
+      if (!S.grade(q, ans).correct) return 'grade ' + JSON.stringify(q);
+      var t = S.storyText(q);
+      if (/(\d)(장|개)(을|를)/.test(t) && !/\d(장을|개를)/.test(t)) return 'josa ' + t;
+      return null;
+    });
+  });
+  var rows = S.tapeRows(w3);
+  eq(rows.map(function (r) { return r.segs.reduce(function (t, x) { return t + x.v; }, 0) === r.value; }).join(), 'true,true,true',
+    '세 사람 테이프 그림의 조각 합 = 각자의 수');
 
   // ---- 입력 -----------------------------------------------------------
   eq(['199', ' １９９ ', '199명', '1,000'].map(function (t) { return S.parseNum(t).value; }).join(','),

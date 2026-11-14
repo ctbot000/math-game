@@ -12,11 +12,13 @@
     { id: 'half', label: '반으로', hint: '△ + △ = 398 → △ = □ — 똑같은 두 수로 나누기' },
     { id: 'guided', label: '차례로 풀기', hint: '학습지 풀이 순서대로 빈칸 채우기' },
     { id: 'story', label: '학습지 문제', hint: '문제를 읽고 두 수를 각각 구하기' },
+    { id: 'tguided', label: '세 사람 차례로', hint: '□ = △ + 145, ○ = □ × 2 를 모두 △ 로 나타내 차례로 풀기' },
+    { id: 'tstory', label: '세 사람 문제', hint: '세 사람이 모은 수 — 한 사람이 모은 수 구하기' },
     { id: 'mix', label: '혼합', hint: '모든 문제 무작위 — 실전 연습' }
   ];
 
   // 문제 종류마다 기본 점수. 여기에 연속 보너스가 붙는다.
-  var POINTS = { remove: 10, half: 10, guided: 18, story: 22 };
+  var POINTS = { remove: 10, half: 10, guided: 18, story: 22, tguided: 24, tstory: 28 };
 
   var state = {
     mode: 'practice',
@@ -129,13 +131,13 @@
   }
 
   function signature(q) {
-    return q.kind + ':' + q.total + ':' + q.diff;
+    return q.kind + ':' + q.total + ':' + (q.three ? q.d : q.diff);
   }
 
   function nextQuestion() {
     // 학습지 문제 단계의 첫 문제는 학습지 그대로
-    if (state.stageId === 'story' && state.lastSig === null) {
-      var w = S.worksheet();
+    if ((state.stageId === 'story' || state.stageId === 'tstory') && state.lastSig === null) {
+      var w = state.stageId === 'story' ? S.worksheet() : S.worksheetThree();
       state.lastSig = signature(w);
       return w;
     }
@@ -151,6 +153,7 @@
     if (q.kind === 'remove') return '△ + △ 는 얼마일까요?';
     if (q.kind === 'half') return '똑같은 수 두 개를 더했어요. △ 는 얼마일까요?';
     if (q.kind === 'guided') return '□와 △를 써서 차례로 풀어 보세요';
+    if (q.kind === 'tguided') return '△, □, ○를 써서 차례로 풀어 보세요';
     return '문제를 읽고 답을 써 보세요';
   }
 
@@ -160,6 +163,10 @@
   function isN(n) { return J(n, '이') === String(n) + '이' ? n + '이에요' : n + '예요'; }
 
   function hintFor(q) {
+    if (q.three) {
+      return '○는 □의 2배라서 □ 두 개예요. □ = △ + ' + q.d + '이니까 셋을 모두 △로 나타내면 △ 네 개와 ' +
+        J(q.d, '이가') + ' 세 번 들어 있어요. 전체에서 ' + J(q.d, '을를') + ' 세 번 빼고, 반의 반을 구해요.';
+    }
     var R = q.total - q.diff;
     if (q.kind === 'remove') {
       return '△ + △ 에 ' + J(q.diff, '을를') + ' 더하면 ' + isN(q.total) + '. 그러니까 △ + △ 는 ' + q.total + '에서 ' +
@@ -172,8 +179,49 @@
       '전체에서 ' + J(q.diff, '을를') + ' 빼고, 반으로 나누면 작은 수예요. 큰 수는 작은 수 + ' + q.diff + '.';
   }
 
+  /** 세 사람 문제의 틀린 답 설명 */
+  function tipForThree(q, value, res) {
+    var T = q.total;
+    var D = q.d;
+    var four = q.a * 4;
+    var sub = T + ' − ' + D * 3 + ' = ' + four + '  (' + D + ' + ' + D + ' + ' + D + ' = ' + D * 3 + ')';
+    var name = function (k) { return q.names[['a', 'b', 'c'].indexOf(k)]; };
+    switch (res.mistake) {
+      case 'subOnce':
+      case 'subTwice':
+        return { head: J(D, '은는') + ' 세 번 들어 있어요. □에 한 번, ○ = □ + □에 두 번이에요.', body: sub };
+      case 'added': case 'noSub': case 'noReduce': case 'swapColumns': case null:
+        return { head: '전체에서 ' + J(D, '을를') + ' 세 번 빼요.', body: sub };
+      case 'notHalved':
+        return res.step === 'two'
+          ? { head: '△ 네 개의 반이 △ 두 개예요.', body: four + '의 반은 ' + q.a * 2 }
+          : { head: '△ 두 개의 반이 △ 하나예요.', body: q.a * 2 + '의 반은 ' + q.a };
+      case 'halfWrong': {
+        var n = res.step === 'two' ? four : q.a * 2;
+        var v = value[res.step];
+        return { head: v + ' + ' + v + ' = ' + (v * 2) + (J(v * 2, '이') === String(v * 2) + '이' ? '이라서 ' : '라서 ') + J(n, '이가') + ' 아니에요.', body: S.halfLine(n) };
+      }
+      case 'bigSame': case 'bigSub': case 'bigWrong':
+        return { head: '□는 △보다 ' + D + ' 더 커요.', body: '□ = ' + q.a + ' + ' + D + ' = ' + q.b };
+      case 'cPlus2':
+        return { head: '2배는 2를 더하는 게 아니라 두 번 더하는 거예요.', body: '○ = ' + q.b + ' + ' + q.b + ' = ' + q.c };
+      case 'cFromA':
+        return { head: '○는 △가 아니라 □의 2배예요.', body: '○ = ' + q.b + ' × 2 = ' + q.c };
+      case 'cWrong':
+        return { head: '○ = □ × 2 = □ + □예요.', body: q.b + ' + ' + q.b + ' = ' + q.c };
+      case 'wrongPerson':
+        return {
+          head: J(value.v, '은는') + ' ' + S.josa(S.callName(name(res.other)), '이가') + ' 모은 수예요.',
+          body: '묻는 사람은 ' + isN(name(q.ask)) + '. ' + S.answerText(q)
+        };
+      default:
+        return { head: '세 사람의 수를 더하면 ' + J(T, '이가') + ' 되어야 해요.', body: sub };
+    }
+  }
+
   /** 틀린 답에 붙는 설명 {head, body} */
   function tipFor(q, value, res) {
+    if (q.three) return tipForThree(q, value, res);
     var T = q.total;
     var D = q.diff;
     var R = T - D;
@@ -295,10 +343,16 @@
     });
   }
 
+  /** 「남자: □명, 여자: □명」 처럼 이름 옆에 답을 쓰는 문제 */
+  function isAnswerRow(q) {
+    return q.kind === 'story' || q.kind === 'tstory';
+  }
+
   function buildLines(q) {
     el.eqLines.innerHTML = '';
     inputs = [];
-    var isStory = q.kind === 'story';
+    var isStory = isAnswerRow(q);
+    el.eqLines.classList.toggle('is-long', q.kind === 'tguided');
     var row = null;
     q.lines.forEach(function (line, li) {
       var hasInput = line.some(function (t) { return typeof t !== 'string'; });
@@ -309,7 +363,7 @@
       }
       row = document.createElement('div');
       row.className = 'eq-line' + (isStory ? ' is-names' : '') +
-        (q.kind === 'guided' && li === 0 ? ' is-note' : !hasInput ? ' is-given' : '');
+        ((q.kind === 'guided' || q.kind === 'tguided') && li === 0 ? ' is-note' : !hasInput ? ' is-given' : '');
       line.forEach(function (t) { addToken(row, t, q); });
       el.eqLines.appendChild(row);
     });
@@ -317,17 +371,22 @@
 
   function addToken(row, t, q) {
     if (typeof t === 'string') {
-      if (q.kind === 'story') {
+      if (isAnswerRow(q)) {
         // 이름과 칸을 한 덩어리로 묶어 줄바꿈에 갈라지지 않게
         var box = span('name-box', '', row);
         span('eq-text', t, box);
         row = box;
       } else {
-        span('eq-text', t, row);
+        // 「 = 」 마디마다 끊기지 않는 덩어리로. 좁은 화면에서 「= 666」 만 따로 떨어지지 않게
+        var text = span('eq-text', '', row);
+        t.split(' = ').forEach(function (part, i, parts) {
+          span('eq-part', part + (i < parts.length - 1 ? ' =' : ''), text);
+          if (i < parts.length - 1) text.appendChild(document.createTextNode(' '));
+        });
       }
       return;
     }
-    var target = q.kind === 'story' ? row.lastChild : row;
+    var target = isAnswerRow(q) ? row.lastChild : row;
     var input = document.createElement('input');
     input.type = 'text';
     input.inputMode = 'numeric';
@@ -340,6 +399,9 @@
   }
 
   function labelFor(q, key) {
+    if (q.three) {
+      return { v: q.names[['a', 'b', 'c'].indexOf(q.ask)], four: '△ 네 개', two: '△ + △', a: '△', b: '□', c: '○' }[key];
+    }
     if (key === 'a') return q.scene.a;
     if (key === 'b') return q.scene.b;
     if (key === 'twice') return '△ + △';
@@ -351,10 +413,10 @@
     var q = state.q;
     state.hint = false;
     el.prompt.textContent = promptFor(q);
-    el.story.hidden = !q.scene;
-    if (q.scene) renderStory(q);
+    el.story.hidden = !(q.scene || q.three);
+    if (!el.story.hidden) renderStory(q);
     buildLines(q);
-    el.labelLines.textContent = q.kind === 'story' ? '답' : q.kind === 'guided' ? '풀이' : '□ 안에 알맞은 수';
+    el.labelLines.textContent = isAnswerRow(q) ? '답' : q.kind === 'guided' || q.kind === 'tguided' ? '풀이' : '□ 안에 알맞은 수';
     setMsg(null, '');
 
     el.hintText.hidden = true;
@@ -374,25 +436,25 @@
     empty.input.focus({ preventScroll: true });
   }
 
-  /** 테이프 그림. 큰 수 = 작은 수 + 차, 둘을 합하면 전체 */
+  /** 테이프 그림. 같은 길이의 △(파랑)와 차(주황) 조각으로 각자의 수를 그린다 */
   function tapeDiagram(q) {
     var wrap = document.createElement('div');
     wrap.className = 'tape';
-    var bigLabel = q.scene ? S.bigName(q) + ' (□)' : '□';
-    var smallLabel = q.scene ? S.smallName(q) + ' (△)' : '△';
-    var unit = q.scene ? q.scene.unit : '';
-    [[bigLabel, q.big, true], [smallLabel, q.small, false]].forEach(function (r) {
-      span('tape-name', r[0], wrap);
+    var rows = S.tapeRows(q);
+    var max = Math.max.apply(null, rows.map(function (r) { return r.value; }));
+    var unit = q.three ? q.item.unit : q.scene ? q.scene.unit : '';
+    rows.forEach(function (r) {
+      span('tape-name', r.label, wrap);
       var track = span('tape-track', '', wrap);
-      var sm = span('seg seg-small' + (r[2] ? ' has-diff' : ''), String(q.small), track);
-      sm.style.width = (q.small / q.big * 100).toFixed(1) + '%';
-      if (r[2]) {
-        var df = span('seg seg-diff', '+' + q.diff, track);
-        df.style.width = (q.diff / q.big * 100).toFixed(1) + '%';
-      }
-      span('tape-value', r[1] + unit, wrap);
+      r.segs.forEach(function (sg) {
+        var seg = span('seg seg-' + (sg.kind === 'diff' ? 'diff' : 'small'), (sg.kind === 'diff' ? '+' : '') + sg.v, track);
+        seg.style.width = (sg.v / max * 100).toFixed(1) + '%';
+      });
+      span('tape-value', r.value + unit, wrap);
     });
-    span('tape-total', '합 ' + q.total + unit + ' · 차 ' + q.diff + unit, wrap);
+    span('tape-total', q.three
+      ? '모두 ' + q.total + unit
+      : '합 ' + q.total + unit + ' · 차 ' + q.diff + unit, wrap);
     return wrap;
   }
 
@@ -420,11 +482,13 @@
       if (i) line.appendChild(document.createElement('br'));
       line.appendChild(document.createTextNode(s));
     });
-    if (q.kind === 'story' || q.kind === 'guided') {
+    if (q.scene || q.three) {
       line.appendChild(document.createElement('br'));
       line.appendChild(document.createTextNode('정답: '));
       var b = document.createElement('b');
-      b.textContent = q.scene ? S.answerText(q) : '';
+      b.textContent = q.kind === 'tstory'
+        ? q.names[['a', 'b', 'c'].indexOf(q.ask)] + ' ' + q.answer.v + q.item.unit
+        : S.answerText(q);
       line.appendChild(b);
     } else {
       line.appendChild(document.createTextNode(' → 정답 '));
@@ -433,7 +497,7 @@
       line.appendChild(b2);
     }
     fb.appendChild(line);
-    if (q.scene) fb.appendChild(tapeDiagram(q));
+    if (q.scene || q.three) fb.appendChild(tapeDiagram(q));
 
     if (!res.correct && value !== null) {
       var tp = tipFor(q, value, res);

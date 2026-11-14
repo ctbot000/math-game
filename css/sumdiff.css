@@ -63,7 +63,8 @@
 }
 .eq-line.is-note { font-size: 14px; font-weight: 600; color: var(--muted); }
 .eq-line.is-given { color: var(--muted); font-size: 18px; }
-.eq-text { white-space: pre-wrap; }
+.eq-text { white-space: pre-wrap; text-align: center; }
+.eq-part { display: inline-block; white-space: nowrap; }
 .eq-line.is-names { gap: 4px 16px; }
 .name-box { display: inline-flex; align-items: center; gap: 6px; }
 .name-box .u { font-size: 17px; font-weight: 600; }
@@ -108,9 +109,12 @@
   overflow: hidden;
   white-space: nowrap;
 }
-.seg-small { background: var(--tape-small); border-radius: 6px; }
-.seg-diff { background: var(--tape-diff); border-radius: 0 6px 6px 0; }
-.seg-small.has-diff { border-radius: 6px 0 0 6px; }
+.seg-small { background: var(--tape-small); }
+.seg-diff { background: var(--tape-diff); }
+.seg + .seg { border-left: 1px solid var(--surface); }
+.seg:first-child { border-radius: 6px 0 0 6px; }
+.seg:last-child { border-radius: 0 6px 6px 0; }
+.seg:only-child { border-radius: 6px; }
 .tape-value { color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .tape-total { grid-column: 1 / -1; text-align: right; font-weight: 700; color: var(--muted); }
 
@@ -118,6 +122,9 @@
   .story { font-size: 15.5px; }
   .eq-line { font-size: 18px; }
   .field .eq-line input { width: 3.8em; font-size: 18px; }
+  .eq-lines.is-long .eq-line { font-size: 16px; }
+  .eq-lines.is-long .eq-line.is-note { font-size: 13px; }
+  .field .eq-lines.is-long .eq-line input { font-size: 17px; padding: 7px 4px; }
 }
 
 .foot { word-break: keep-all; }
