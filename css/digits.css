@@ -1,0 +1,120 @@
+/* 숫자 카드로 세 자리 수 만들기 — css/style.css 위에 얹는다 */
+
+.story {
+  margin: 0 0 4px;
+  padding: 12px 14px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.6;
+  word-break: keep-all;
+}
+.story b { color: var(--accent); }
+
+.hint-text {
+  margin: 12px 0 0;
+  padding: 9px 12px;
+  border-left: 3px solid var(--accent);
+  background: var(--surface-2);
+  border-radius: 0 10px 10px 0;
+  font-size: 13px;
+  color: var(--muted);
+  word-break: keep-all;
+}
+
+/* ---------- 판: 만든 수 ---------- */
+
+.board {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+.board-row {
+  display: grid;
+  grid-template-columns: 5.4em auto;
+  align-items: center;
+  gap: 10px;
+}
+.row-label { font-size: 13px; font-weight: 700; color: var(--muted); text-align: right; white-space: nowrap; }
+.row-label .op { font-size: 22px; color: var(--text); margin-right: 4px; }
+.slots { display: flex; gap: 6px; }
+.slot {
+  width: 54px;
+  height: 64px;
+  border: 2px dashed var(--border);
+  border-radius: 12px;
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 30px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+.slot.is-filled { border-style: solid; background: var(--surface); }
+.slot.is-active { border-color: var(--accent); background: var(--accent-soft); }
+.slot:disabled { cursor: default; }
+.slot.is-good { border-color: var(--good); background: var(--good-soft); color: var(--good); }
+.slot.is-bad { border-color: var(--bad); background: var(--bad-soft); color: var(--bad); }
+.board-line { width: 100%; max-width: 260px; border-top: 2px solid var(--text); opacity: 0.6; }
+
+.live {
+  min-height: 1.4em;
+  margin: 8px 0 0;
+  text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 카드 ---------- */
+
+.cards {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 7px;
+  margin-top: 12px;
+}
+.digit-card {
+  width: 44px;
+  height: 56px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 2px 0 var(--border);
+  font: inherit;
+  font-size: 24px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: transform 0.1s ease, opacity 0.12s ease;
+}
+.digit-card:hover:not(:disabled) { transform: translateY(-2px); border-color: var(--accent); }
+.digit-card:disabled { opacity: 0.25; cursor: default; box-shadow: none; }
+
+/* ---------- 풀이 ---------- */
+
+.answer-line { line-height: 1.8; font-variant-numeric: tabular-nums; word-break: keep-all; }
+.answer-line .all { color: var(--muted); font-size: 13.5px; }
+
+@media (max-width: 420px) {
+  .story { font-size: 15.5px; }
+  .slot { width: 48px; height: 58px; font-size: 27px; }
+  .digit-card { width: 40px; height: 52px; font-size: 22px; }
+  .board-row { grid-template-columns: 4.8em auto; gap: 6px; }
+  .row-label { font-size: 12px; }
+}
+
+.foot { word-break: keep-all; }
+@media (hover: none) and (pointer: coarse) {
+  .foot { display: none; }
+}

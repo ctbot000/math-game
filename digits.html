@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="초등 숫자 카드 문제 — 0부터 9까지 한 번씩 써서 차가 가장 작은 두 세 자리 수 만들기.">
+<title>숫자 카드로 세 자리 수 만들기</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🃏</text></svg>">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/digits.css">
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="crumb"><a href="./">← 수학 게임</a></nav>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo logo-digits" aria-hidden="true">123</span>
+      <div>
+        <h1>숫자 카드로 세 자리 수 만들기</h1>
+        <p>초등 3학년 · 가장 큰 수, 가장 작은 수, 차가 가장 크게·작게</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button type="button" class="icon-btn" id="btn-guide" aria-pressed="false">📘 규칙</button>
+      <button type="button" class="icon-btn" id="btn-sound" aria-pressed="true" title="소리 켜기/끄기">🔊</button>
+    </div>
+  </header>
+
+  <!-- 규칙 시트 -->
+  <section class="panel guide" id="guide" hidden>
+    <h2>만드는 법</h2>
+    <ul>
+      <li><b>가장 큰 수</b>는 높은 자리부터 큰 숫자를. <code>0 3 5 8 → 853</code></li>
+      <li><b>가장 작은 수</b>는 높은 자리부터 작은 숫자를. 단, <b>0은 백의 자리에 못 와요.</b> <code>0 3 5 8 → 305</code></li>
+      <li><b>차가 가장 크게:</b> 큰 수는 가장 크게, 작은 수는 남은 숫자로 가장 작게. <code>987 − 102 = 885</code></li>
+      <li><b>차가 가장 작게:</b> 백의 자리 숫자의 차를 1로 하고, 큰 수의 나머지는 가장 작게, 작은 수의 나머지는 가장 크게.
+        <code>301 − 298 = 3</code></li>
+      <li>답이 여러 개일 수 있어요. <code>401 − 398</code>, <code>501 − 498</code>도 차가 3이에요.</li>
+    </ul>
+  </section>
+
+  <!-- 설정 -->
+  <section class="panel">
+    <div class="control-row">
+      <span class="control-label">모드</span>
+      <div class="segmented" id="mode-group" role="group" aria-label="모드">
+        <button type="button" data-mode="practice" aria-pressed="true">연습</button>
+        <button type="button" data-mode="challenge" aria-pressed="false">도전 90초</button>
+      </div>
+    </div>
+    <div class="control-row">
+      <span class="control-label">단계</span>
+      <div class="segmented" id="level-group" role="group" aria-label="단계"></div>
+    </div>
+    <p class="level-hint" id="level-hint"></p>
+  </section>
+
+  <!-- 통계 -->
+  <dl class="stats">
+    <div class="stat"><dt>점수</dt><dd id="stat-score">0</dd></div>
+    <div class="stat"><dt>연속</dt><dd id="stat-streak">0</dd></div>
+    <div class="stat"><dt>정확도</dt><dd id="stat-accuracy">—</dd></div>
+    <div class="stat" id="stat-right-tile"><dt id="stat-right-label">최고 연속</dt><dd id="stat-right">0</dd></div>
+  </dl>
+
+  <!-- 문제 -->
+  <main class="card" id="card">
+    <p class="story" id="story"></p>
+    <p class="hint-text" id="hint-text" hidden></p>
+
+    <form id="answer-form" autocomplete="off">
+      <div class="field" id="field-board">
+        <div class="board" id="board"></div>
+        <p class="live" id="live" aria-live="polite"></p>
+        <div class="cards" id="cards" role="group" aria-label="숫자 카드"></div>
+        <p class="field-msg" id="msg-board"></p>
+      </div>
+
+      <div class="feedback" id="feedback" hidden></div>
+
+      <div class="actions">
+        <button type="submit" class="btn btn-primary" id="btn-submit">확인</button>
+        <button type="button" class="btn btn-ghost" id="btn-hint" aria-pressed="false">힌트</button>
+        <button type="button" class="btn btn-ghost" id="btn-skip">모르겠어요</button>
+      </div>
+    </form>
+
+    <div class="result" id="result" hidden>
+      <h2 id="result-title">시간 종료!</h2>
+      <div class="big" id="result-score">0</div>
+      <p id="result-detail"></p>
+      <div class="actions">
+        <button type="button" class="btn btn-primary" id="btn-restart">다시 도전</button>
+      </div>
+    </div>
+  </main>
+
+  <p class="foot">카드를 누르면 빈칸에 들어가요 · 칸을 누르면 빼요 · 숫자 키로 놓기 · <kbd>⌫</kbd> 빼기 · <kbd>Enter</kbd> 확인·다음</p>
+</div>
+
+<script src="js/digitcard.js"></script>
+<script src="js/digit-game.js"></script>
+</body>
+</html>

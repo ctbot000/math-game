@@ -107,6 +107,8 @@ body {
 .logo-time { background: linear-gradient(145deg, #4fd1c5, #3b82f6); font-size: 22px; }
 /* 합과 차 */
 .logo-sumdiff { background: linear-gradient(145deg, #a78bfa, #ec4899); font-size: 15px; letter-spacing: -1px; }
+/* 숫자 카드 */
+.logo-digits { background: linear-gradient(145deg, #34d399, #0ea5e9); font-size: 14px; letter-spacing: -0.5px; }
 
 .brand h1 { margin: 0; font-size: 17px; letter-spacing: -0.2px; }
 /* 좁은 화면에서 한글이 단어 중간에서 끊기지 않도록 */
