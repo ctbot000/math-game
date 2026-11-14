@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="초등 합과 차 문제 — 전체가 581명이고 남자가 183명 더 많을 때 남자와 여자는 각각 몇 명일까요?">
+<title>합과 차로 두 수 구하기</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>⚖️</text></svg>">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/sumdiff.css">
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="crumb"><a href="./">← 수학 게임</a></nav>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo logo-sumdiff" aria-hidden="true">□△</span>
+      <div>
+        <h1>합과 차로 두 수 구하기</h1>
+        <p>초등 3학년 · 두 수의 합과 차를 알 때 □와 △ 구하기</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button type="button" class="icon-btn" id="btn-guide" aria-pressed="false">📘 규칙</button>
+      <button type="button" class="icon-btn" id="btn-sound" aria-pressed="true" title="소리 켜기/끄기">🔊</button>
+    </div>
+  </header>
+
+  <!-- 규칙 시트 -->
+  <section class="panel guide" id="guide" hidden>
+    <h2>푸는 법</h2>
+    <p class="guide-ex">전체 581명, 남자가 여자보다 183명 더 많아요.</p>
+    <ul>
+      <li>큰 수를 <b>□</b>, 작은 수를 <b>△</b>라고 하면 <code>□ = △ + 183</code></li>
+      <li>더하면 전체예요. <code>△ + 183 + △ = 581</code></li>
+      <li><b>전체에서 차를 빼면</b> 똑같은 두 수가 남아요. <code>△ + △ = 581 − 183 = 398</code></li>
+      <li><b>반으로 나눠요.</b> 자리마다 반을 구해 더하면 쉬워요.
+        <code>300의 반 150, 90의 반 45, 8의 반 4 → △ = 199</code></li>
+      <li>작은 수에 차를 더하면 큰 수예요. <code>□ = 199 + 183 = 382</code></li>
+      <li><b>확인해요.</b> 더하면 전체, 빼면 차가 나와야 해요.
+        <code>382 + 199 = 581</code> <code>382 − 199 = 183</code></li>
+    </ul>
+  </section>
+
+  <!-- 설정 -->
+  <section class="panel">
+    <div class="control-row">
+      <span class="control-label">모드</span>
+      <div class="segmented" id="mode-group" role="group" aria-label="모드">
+        <button type="button" data-mode="practice" aria-pressed="true">연습</button>
+        <button type="button" data-mode="challenge" aria-pressed="false">도전 90초</button>
+      </div>
+    </div>
+    <div class="control-row">
+      <span class="control-label">단계</span>
+      <div class="segmented" id="level-group" role="group" aria-label="단계"></div>
+    </div>
+    <p class="level-hint" id="level-hint"></p>
+  </section>
+
+  <!-- 통계 -->
+  <dl class="stats">
+    <div class="stat"><dt>점수</dt><dd id="stat-score">0</dd></div>
+    <div class="stat"><dt>연속</dt><dd id="stat-streak">0</dd></div>
+    <div class="stat"><dt>정확도</dt><dd id="stat-accuracy">—</dd></div>
+    <div class="stat" id="stat-right-tile"><dt id="stat-right-label">최고 연속</dt><dd id="stat-right">0</dd></div>
+  </dl>
+
+  <!-- 문제 -->
+  <main class="card" id="card">
+    <p class="prompt" id="prompt"></p>
+    <p class="story" id="story" hidden></p>
+    <p class="hint-text" id="hint-text" hidden></p>
+
+    <form id="answer-form" autocomplete="off">
+      <div class="field" id="field-lines">
+        <div class="field-head">
+          <span class="label" id="label-lines">답</span>
+          <span class="eg">빈칸에 숫자만</span>
+        </div>
+        <div class="eq-lines" id="eq-lines"></div>
+        <p class="field-msg" id="msg-lines"></p>
+      </div>
+
+      <div class="feedback" id="feedback" hidden></div>
+
+      <div class="actions">
+        <button type="submit" class="btn btn-primary" id="btn-submit">확인</button>
+        <button type="button" class="btn btn-ghost" id="btn-hint" aria-pressed="false">힌트</button>
+        <button type="button" class="btn btn-ghost" id="btn-skip">모르겠어요</button>
+      </div>
+    </form>
+
+    <div class="result" id="result" hidden>
+      <h2 id="result-title">시간 종료!</h2>
+      <div class="big" id="result-score">0</div>
+      <p id="result-detail"></p>
+      <div class="actions">
+        <button type="button" class="btn btn-primary" id="btn-restart">다시 도전</button>
+      </div>
+    </div>
+  </main>
+
+  <p class="foot"><kbd>Enter</kbd> 다음 빈칸·확인·다음 문제 · 칸 사이는 <kbd>Tab</kbd></p>
+</div>
+
+<script src="js/sumdiff.js"></script>
+<script src="js/sumdiff-game.js"></script>
+</body>
+</html>
