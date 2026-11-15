@@ -111,6 +111,7 @@ body {
 .logo-digits { background: linear-gradient(145deg, #34d399, #0ea5e9); font-size: 14px; letter-spacing: -0.5px; }
 .logo-distance { background: linear-gradient(145deg, #f59e0b, #ef4444); font-size: 13px; letter-spacing: -1px; }
 .logo-consec { background: linear-gradient(145deg, #22d3ee, #6366f1); font-size: 16px; }
+.logo-near { background: linear-gradient(145deg, #f472b6, #f59e0b); font-size: 24px; }
 
 .brand h1 { margin: 0; font-size: 17px; letter-spacing: -0.2px; }
 /* 좁은 화면에서 한글이 단어 중간에서 끊기지 않도록 */

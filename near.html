@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="초등 가장 가까운 수 — 202 + □가 700에 가장 가깝게, 십·일의 자리나 백·일의 자리가 같은 수, 수 카드로 차가 325에 가장 가까운 수 만들기.">
+<title>가장 가까운 수</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>🎯</text></svg>">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/near.css">
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="crumb"><a href="./">← 수학 게임</a></nav>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo logo-near" aria-hidden="true">≈</span>
+      <div>
+        <h1>가장 가까운 수</h1>
+        <p>초등 3학년 · 합이 목표에 가장 가깝게, 수 카드로 차가 가장 가깝게</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button type="button" class="icon-btn" id="btn-guide" aria-pressed="false">📘 규칙</button>
+      <button type="button" class="icon-btn" id="btn-sound" aria-pressed="true" title="소리 켜기/끄기">🔊</button>
+    </div>
+  </header>
+
+  <!-- 규칙 시트 -->
+  <section class="panel guide" id="guide" hidden>
+    <h2>푸는 법</h2>
+    <p class="guide-ex">□는 십의 자리 수와 일의 자리 수가 같은 세 자리 수. 202 + □가 700에 가장 가깝게 하려면?</p>
+    <ul>
+      <li>먼저 <b>딱 맞는 수</b>를 구해요. <code>□ = 700 − 202 = 498</code></li>
+      <li>498은 조건에 안 맞아요. 조건에 맞는 <b>바로 아래 수와 바로 위 수</b>를 찾아요. <code>488, 499</code></li>
+      <li>더 가까운 쪽을 골라요. <code>498 − 488 = 10, 499 − 498 = 1 → 499</code></li>
+      <li>세 수의 합이면 아는 두 수부터 더해요. <code>354 + 268 = 622 → □ = 800 − 622 = 178</code></li>
+    </ul>
+    <p class="guide-ex">수 카드 1, 4, 6, 3 중 세 장으로 700과의 차가 325에 가장 가까운 수는?</p>
+    <ul>
+      <li>차가 딱 325인 수: <code>700 − 325 = 375</code></li>
+      <li>카드로 만든 375 바로 아래 수 <code>364</code>, 바로 위 수 <code>413</code></li>
+      <li><code>375 − 364 = 11, 413 − 375 = 38 → 364</code></li>
+    </ul>
+  </section>
+
+  <!-- 설정 -->
+  <section class="panel">
+    <div class="control-row">
+      <span class="control-label">모드</span>
+      <div class="segmented" id="mode-group" role="group" aria-label="모드">
+        <button type="button" data-mode="practice" aria-pressed="true">연습</button>
+        <button type="button" data-mode="challenge" aria-pressed="false">도전 90초</button>
+      </div>
+    </div>
+    <div class="control-row">
+      <span class="control-label">단계</span>
+      <div class="segmented" id="level-group" role="group" aria-label="단계"></div>
+    </div>
+    <p class="level-hint" id="level-hint"></p>
+  </section>
+
+  <!-- 통계 -->
+  <dl class="stats">
+    <div class="stat"><dt>점수</dt><dd id="stat-score">0</dd></div>
+    <div class="stat"><dt>연속</dt><dd id="stat-streak">0</dd></div>
+    <div class="stat"><dt>정확도</dt><dd id="stat-accuracy">—</dd></div>
+    <div class="stat" id="stat-right-tile"><dt id="stat-right-label">최고 연속</dt><dd id="stat-right">0</dd></div>
+  </dl>
+
+  <!-- 문제 -->
+  <main class="card" id="card">
+    <p class="prompt" id="prompt"></p>
+    <p class="story" id="story" hidden></p>
+    <div class="expr" id="expr" hidden></div>
+    <p class="hint-text" id="hint-text" hidden></p>
+
+    <form id="answer-form" autocomplete="off">
+      <div class="field" id="field-lines">
+        <div class="field-head">
+          <span class="label" id="label-lines">답</span>
+          <span class="eg">빈칸에 숫자만</span>
+        </div>
+        <div class="eq-lines" id="eq-lines"></div>
+        <p class="field-msg" id="msg-lines"></p>
+      </div>
+
+      <div class="feedback" id="feedback" hidden></div>
+      <div class="strip" id="strip" hidden></div>
+
+      <div class="actions">
+        <button type="submit" class="btn btn-primary" id="btn-submit">확인</button>
+        <button type="button" class="btn btn-ghost" id="btn-hint" aria-pressed="false">힌트</button>
+        <button type="button" class="btn btn-ghost" id="btn-skip">모르겠어요</button>
+      </div>
+    </form>
+
+    <div class="result" id="result" hidden>
+      <h2 id="result-title">시간 종료!</h2>
+      <div class="big" id="result-score">0</div>
+      <p id="result-detail"></p>
+      <div class="actions">
+        <button type="button" class="btn btn-primary" id="btn-restart">다시 도전</button>
+      </div>
+    </div>
+  </main>
+
+  <p class="foot"><kbd>Enter</kbd> 다음 빈칸·확인·다음 문제 · 칸 사이는 <kbd>Tab</kbd></p>
+</div>
+
+<script src="js/near.js"></script>
+<script src="js/near-game.js"></script>
+</body>
+</html>

@@ -37,6 +37,8 @@
 <script src="js/distance.test.js"></script>
 <script src="js/consec.js"></script>
 <script src="js/consec.test.js"></script>
+<script src="js/near.js"></script>
+<script src="js/near.test.js"></script>
 <script>
   var suites = [
     { name: 'korean-number.js', results: window.KOREAN_NUMBER_TEST_RESULTS || [] },
@@ -46,7 +48,8 @@
     { name: 'sumdiff.js', results: window.SUMDIFF_TEST_RESULTS || [] },
     { name: 'digitcard.js', results: window.DIGITCARD_TEST_RESULTS || [] },
     { name: 'distance.js', results: window.DISTANCE_TEST_RESULTS || [] },
-    { name: 'consec.js', results: window.CONSEC_TEST_RESULTS || [] }
+    { name: 'consec.js', results: window.CONSEC_TEST_RESULTS || [] },
+    { name: 'near.js', results: window.NEAR_TEST_RESULTS || [] }
   ];
   var all = [].concat.apply([], suites.map(function (s) { return s.results; }));
   var failedCount = all.filter(function (r) { return !r.pass; }).length;
