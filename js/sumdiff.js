@@ -46,7 +46,9 @@
     { intro: '과수원에서 딴 사과와 배는 모두', a: '사과', b: '배', unit: '개', ask: '딴 사과와 배는 각각 몇 개인지 구해 보세요.' },
     { intro: '빨간 색종이와 파란 색종이는 모두', a: '빨간 색종이', b: '파란 색종이', unit: '장', ask: '빨간 색종이와 파란 색종이는 각각 몇 장인지 구해 보세요.' },
     { intro: '도서관에 있는 동화책과 위인전은 모두', a: '동화책', b: '위인전', unit: '권', ask: '동화책과 위인전은 각각 몇 권인지 구해 보세요.' },
-    { intro: '지우와 민준이가 한 줄넘기는 모두', a: '지우', b: '민준이', unit: '번', ask: '지우와 민준이는 줄넘기를 각각 몇 번 했는지 구해 보세요.' }
+    { intro: '지우와 민준이가 한 줄넘기는 모두', a: '지우', b: '민준이', unit: '번', ask: '지우와 민준이는 줄넘기를 각각 몇 번 했는지 구해 보세요.' },
+    // 학습지 3: 「어떤 두 수의 합은 933이고, 차는 285입니다. 두 수 중에서 작은 수를 구해 보세요.」
+    { intro: '어떤 두 수의 합은', a: '큰 수', b: '작은 수', unit: '', bare: true, ask: '두 수 중에서 큰 수와 작은 수를 각각 구해 보세요.' }
   ];
 
   // ------------------------------------------------------------------ 난수
@@ -173,8 +175,8 @@
     var scene = SCENES[Math.floor(rng() * SCENES.length)];
     return {
       scene: scene,
-      bigIsA: rng() < 0.6,     // 학습지처럼 앞에 나온 쪽이 더 많은 경우를 조금 더 자주
-      fewer: rng() < 0.3       // 「더 적습니다」 로 묻기
+      bigIsA: scene.bare || rng() < 0.6,     // 학습지처럼 앞에 나온 쪽이 더 많은 경우를 조금 더 자주
+      fewer: !scene.bare && rng() < 0.3      // 「더 적습니다」 로 묻기
     };
   }
 
@@ -206,6 +208,17 @@
     return q;
   }
 
+  /** 학습지 3 그대로: 합 933, 차 285 → 609, 324 */
+  function worksheetBare() {
+    var q = {
+      kind: 'story', total: 933, diff: 285, big: 609, small: 324,
+      scene: SCENES[SCENES.length - 1], bigIsA: true, fewer: false
+    };
+    q.answer = answerOf(q);
+    q.lines = linesOf(q);
+    return q;
+  }
+
   function answerOf(q) {
     switch (q.kind) {
       case 'remove': return { v: q.total - q.diff };
@@ -222,6 +235,7 @@
   function storyText(q) {
     if (q.three) return threeStoryText(q);
     var s = q.scene;
+    if (s.bare) return s.intro + ' ' + q.total + '이고, 차는 ' + q.diff + '입니다. ' + s.ask;
     var rel = q.fewer
       ? josa(smallName(q), '이가') + ' ' + bigName(q) + '보다 ' + q.diff + s.unit + ' 더 적습니다.'
       : josa(bigName(q), '이가') + ' ' + smallName(q) + '보다 ' + q.diff + s.unit + ' 더 많습니다.';
@@ -244,7 +258,7 @@
         ];
       case 'guided':
         return [
-          [BIG + ' = ' + bigName(q) + ' 수,  ' + SMALL + ' = ' + smallName(q) + ' 수'],
+          [q.scene.bare ? BIG + ' = 큰 수,  ' + SMALL + ' = 작은 수' : BIG + ' = ' + bigName(q) + ' 수,  ' + SMALL + ' = ' + smallName(q) + ' 수'],
           [BIG + ' = ' + SMALL + ' + ' + D],
           [SMALL + ' + ' + D + ' + ' + SMALL + ' = ' + T],
           [SMALL + ' + ' + SMALL + ' = ' + T + ' ' + MINUS + ' ' + D + ' = ', { input: 'twice' }],
@@ -539,7 +553,7 @@
       ];
     }
     return [
-      BIG + ' = ' + bigName(q) + ' 수,  ' + SMALL + ' = ' + smallName(q) + ' 수라고 하면',
+      (q.scene && q.scene.bare ? BIG + ' = 큰 수,  ' + SMALL + ' = 작은 수라고 하면' : BIG + ' = ' + bigName(q) + ' 수,  ' + SMALL + ' = ' + smallName(q) + ' 수라고 하면'),
       BIG + ' = ' + SMALL + ' + ' + D,
       SMALL + ' + ' + D + ' + ' + SMALL + ' = ' + T,
       SMALL + ' + ' + SMALL + ' = ' + T + ' ' + MINUS + ' ' + D + ' = ' + R,
@@ -578,6 +592,7 @@
     josa: josa,
     generate: generate,
     worksheet: worksheet,
+    worksheetBare: worksheetBare,
     storyText: storyText,
     bigName: bigName,
     smallName: smallName,
