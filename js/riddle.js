@@ -23,8 +23,8 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
 
-  // guided·three: 기호 셋이 한 자리씩, pguided·pair: 같은 기호가 여러 번
-  var KINDS = ['guided', 'three', 'pguided', 'pair'];
+  // guided·three: 기호 셋이 한 자리씩, pguided·pair: 같은 기호가 여러 번, sub: 뺄셈식 (후보를 넣어 보기)
+  var KINDS = ['guided', 'three', 'pguided', 'pair', 'sub'];
   var SYM = { A: '㉠', B: '㉡', C: '㉢' };
   var COL = ['일의 자리', '십의 자리', '백의 자리'];
 
@@ -161,6 +161,12 @@
     return { ok: true, vals: vals, steps: steps };
   }
 
+  /** 값을 넣었을 때 식이 맞는가. 뺄셈식은 rows[0] − rows[1] = rows[2] */
+  function holds(q, vals) {
+    var a = value(q.rows[0], vals), b = value(q.rows[1], vals), c = value(q.rows[2], vals);
+    return q.op === '−' ? a - b === c : a + b === c;
+  }
+
   /** 모든 값을 넣어 보고 맞는 답을 모두 찾는다 (검증용) */
   function bruteForce(q) {
     var syms = symbols(q);
@@ -171,7 +177,7 @@
       var r = m;
       syms.forEach(function (s) { vals[s] = r % 10; r = Math.floor(r / 10); });
       if (syms.some(function (s) { return vals[s] === 0 && leads(q, s); })) continue;
-      if (value(q.rows[0], vals) + value(q.rows[1], vals) === value(q.rows[2], vals)) out.push(vals);
+      if (holds(q, vals)) out.push(vals);
     }
     return out;
   }
@@ -250,8 +256,80 @@
     }
   }
 
+  // ------------------------------------------------------------------ 뺄셈식
+
+  /**
+   * 뺄셈식은 자리마다 한 기호씩 풀리지 않는다 (학습지 9: ㉠㉡㉠ − ㉡㉠㉡ = ㉡55 의 일의 자리는 ㉠ − ㉡).
+   * 그래서 학습지 풀이처럼 일의 자리로 후보를 추리고, 하나씩 넣어 본다.
+   * 후보: 일의 자리 끝자리가 맞고, 빼지는 수가 빼는 수보다 큰 (㉠, ㉡)
+   */
+  function subCandidates(q) {
+    var out = [];
+    for (var a = 0; a <= 9; a++) {
+      for (var b = 0; b <= 9; b++) {
+        if (a === b) continue;
+        var vals = { A: a, B: b };
+        if (q.syms.some(function (s) { return vals[s] === 0 && leads(q, s); })) continue;
+        var top = value(q.rows[0], vals), bot = value(q.rows[1], vals);
+        if (top <= bot) continue;
+        var ones = function (r) { var t = r[r.length - 1]; return isSym(t) ? vals[t] : t; };
+        if ((ones(q.rows[0]) - ones(q.rows[1]) + 10) % 10 !== ones(q.rows[2])) continue;
+        out.push(vals);
+      }
+    }
+    return out;
+  }
+
+  function buildSub(kind, rows) {
+    var q = { kind: kind, op: '−', rows: rows };
+    q.syms = symbols(q);
+    var sols = bruteForce(q).filter(function (v) { return v.A !== v.B; });
+    if (sols.length !== 1) return null;
+    q.vals = sols[0];
+    q.cands = subCandidates(q);
+    if (q.cands.length < 2 || q.cands.length > 6) return null;
+    q.nums = rows.map(function (r) { return value(r, q.vals); });
+    q.total = q.vals.A + q.vals.B;
+    q.answer = { A: q.vals.A, B: q.vals.B };
+    return q;
+  }
+
+  /** 뺄셈식: 두 수는 ㉠·㉡ (숫자가 섞이기도), 차는 숫자인데 ㉠·㉡ 과 같은 숫자는 기호로 쓰기도 */
+  function genSub(kind, rng) {
+    for (;;) {
+      var x = randInt(rng, 0, 9);
+      var y = randInt(rng, 0, 9);
+      if (x === y) continue;
+      var mixDigits = rng() < 0.4;
+      var pat = function () {
+        return [0, 1, 2].map(function (i) {
+          if (mixDigits && rng() < 0.3) return randInt(rng, i === 0 ? 1 : 0, 9);
+          return rng() < 0.5 ? 'A' : 'B';
+        });
+      };
+      var top = pat();
+      var bot = pat();
+      var all = top.concat(bot);
+      if (all.indexOf('A') < 0 || all.indexOf('B') < 0) continue;
+      if (!isSym(top[2]) && !isSym(bot[2])) continue;
+      var vals = { A: x, B: y };
+      var d = value(top, vals) - value(bot, vals);
+      if (d < 100) continue;
+      var diff = digits(d).map(function (t) {
+        if (t === x && rng() < 0.6) return 'A';
+        if (t === y && rng() < 0.6) return 'B';
+        return t;
+      });
+      var q = buildSub(kind, [top, bot, diff]);
+      if (q) return q;
+    }
+  }
+
+  function worksheetSub() { return buildSub('sub', [['A', 'B', 'A'], ['B', 'A', 'B'], ['B', 5, 5]]); }
+
   function generate(kind, rng) {
     rng = rng || Math.random;
+    if (kind === 'sub') return genSub(kind, rng);
     return kind === 'three' || kind === 'guided' ? genThree(kind, rng) : genPair(kind, rng);
   }
 
@@ -261,6 +339,7 @@
   // ------------------------------------------------------------------ 글
 
   function questionText(q) {
+    if (q.kind === 'sub') return '뺄셈식에서 같은 기호는 같은 수를 나타낼 때 ㉠과 ㉡에 알맞은 수를 각각 구해 보세요.';
     if (q.kind === 'three' || q.kind === 'guided') {
       return '세 자리 수 ' + J(show(q.rows[0]), '과와') + ' ' + show(q.rows[1]) + '의 합이 ' + show(q.rows[2]) + '일 때 ' +
         q.syms.map(function (s) { return SYM[s]; }).join(' + ') + '의 값은 얼마일까요?';
@@ -303,6 +382,7 @@
 
   /** 풀이 줄 */
   function solutionLines(q) {
+    if (q.kind === 'sub') return subLines(q);
     var out = q.sol.steps.map(function (st) {
       var line = COL[st.col] + ': ' + columnExpr(q, st) + ' = ' + st.total;
       if (st.sym) line += ' → ' + SYM[st.sym] + ' = ' + q.vals[st.sym];
@@ -321,6 +401,26 @@
         q.syms.map(function (s) { return q.vals[s]; }).join(' + ') + ' = ' + q.total;
     }
     out.push(eqLine);
+    return out;
+  }
+
+  /** 뺄셈식 풀이: 일의 자리로 후보를 추리고 하나씩 넣어 보기 */
+  function subLines(q) {
+    var o = function (r) { var t = r[r.length - 1]; return isSym(t) ? SYM[t] : String(t); };
+    var pair = function (v) { return '(' + v.A + ', ' + v.B + ')'; };
+    var out = [
+      '일의 자리: ' + o(q.rows[0]) + ' − ' + o(q.rows[1]) + '의 끝자리가 ' + o(q.rows[2]) +
+        '이고 빼지는 수가 더 커야 해요 → (㉠, ㉡) = ' + q.cands.map(pair).join(', ')
+    ];
+    var hasSym = q.rows[2].some(isSym);
+    q.cands.forEach(function (v) {
+      var a = value(q.rows[0], v), b = value(q.rows[1], v), c = value(q.rows[2], v);
+      var line = pair(v) + ': ' + a + ' − ' + b + ' = ' + (a - b);
+      if (a - b === c) line += ' ✓';
+      else line += ' ≠ ' + (hasSym ? show(q.rows[2]) + '(' + c + ')' : String(c)) + ' ✗';
+      out.push(line);
+    });
+    out.push('㉠ = ' + q.vals.A + ', ㉡ = ' + q.vals.B + ' → ' + q.nums[0] + ' − ' + q.nums[1] + ' = ' + q.nums[2]);
     return out;
   }
 
@@ -361,11 +461,16 @@
 
     // 풀이 순서: 일의 자리부터 기호와 받아올림, 마지막에 합
     var order = [];
-    q.sol.steps.forEach(function (st) {
+    if (q.sol) q.sol.steps.forEach(function (st) {
       if (st.sym && keys.indexOf(st.sym) >= 0) order.push(st.sym);
       if (keys.indexOf('c' + st.col) >= 0) order.push('c' + st.col);
     });
     if (keys.indexOf('total') >= 0) order.push('total');
+    if (q.kind === 'sub') {
+      var sw = value.A === q.vals.B && value.B === q.vals.A;
+      var onesOnly = q.cands.some(function (v) { return v.A === value.A && v.B === value.B; });
+      return { correct: false, ok: ok, mistake: sw ? 'swapped' : onesOnly ? 'onesOnly' : null, step: ok.A ? 'B' : 'A' };
+    }
     var step = order.filter(function (k) { return !ok[k]; })[0];
     var v = value[step];
     var mistake = null;
@@ -408,6 +513,7 @@
     generate: generate,
     worksheetPair: worksheetPair,
     worksheetThree: worksheetThree,
+    worksheetSub: worksheetSub,
     questionText: questionText,
     lines: lines,
     inputKeys: inputKeys,

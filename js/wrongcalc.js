@@ -22,8 +22,10 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function () {
   'use strict';
 
-  // one: 더하기·빼기를 바꿈, misread: 수를 잘못 봄, guided·two: 두 번 계산을 거꾸로
-  var KINDS = ['one', 'misread', 'guided', 'two'];
+  // one: 더하기·빼기를 바꿈, misread: 수를 잘못 봄, guided·two: 두 번 계산을 거꾸로,
+  // symbol: 약속한 기호 ◆ (㉠◆㉡ = ㉠ − ㉡) 로 된 식에서 □ 구하기
+  var KINDS = ['one', 'misread', 'guided', 'two', 'symbol'];
+  var DIA = '◆';
   var PLUS = '+';
   var MINUS = '−';
 
@@ -120,8 +122,75 @@
     return null;
   }
 
+  // ------------------------------------------------------------------ 약속한 기호
+
+  /** ㉠◆㉡ 의 값. rule '−': ㉠ − ㉡, '+': ㉠ + ㉡ */
+  function dia(rule, x, y) { return rule === PLUS ? x + y : x - y; }
+
+  /**
+   * 학습지: 「기호 ◆를 ㉠◆㉡ = ㉠ − ㉡ 이라고 약속할 때 781◆293 = □◆594」
+   *   781◆293 = 781 − 293 = 488, □ − 594 = 488 → □ = 488 + 594 = 1082
+   * box: 'left' 면 □◆c, 'right' 면 c◆□
+   */
+  function makeSymbol(rule, a, b, c, box) {
+    var q = { kind: 'symbol', rule: rule, a: a, b: b, c: c, box: box };
+    q.v = dia(rule, a, b);
+    if (rule === PLUS) q.x = q.v - c;
+    else q.x = box === 'left' ? q.v + c : c - q.v;
+    q.ans = q.x;
+    q.answer = { ans: q.x };
+    return q;
+  }
+
+  function genSymbol(rng) {
+    for (;;) {
+      var rule = rng() < 0.7 ? MINUS : PLUS;
+      var a = randInt(rng, 120, 989);
+      var b = randInt(rng, 102, 899);
+      var c = randInt(rng, 102, 899);
+      var box = rng() < 0.65 ? 'left' : 'right';
+      var q = makeSymbol(rule, a, b, c, box);
+      if (q.v < 100 || q.x < 100 || q.x === q.v || q.x === c) continue;
+      return q;
+    }
+  }
+
+  function worksheetSymbol() { return makeSymbol(MINUS, 781, 293, 594, 'left'); }
+
+  function symbolExpr(q) {
+    return q.a + DIA + q.b + ' = ' + (q.box === 'left' ? '□' + DIA + q.c : q.c + DIA + '□');
+  }
+
+  function symbolLines(q) {
+    var op = q.rule;
+    var boxSide = q.box === 'left' ? '□ ' + op + ' ' + q.c : q.c + ' ' + op + ' □';
+    var last;
+    if (op === PLUS) last = '□ = ' + q.v + ' − ' + q.c + ' = ' + q.x;
+    else if (q.box === 'left') last = '□ = ' + q.v + ' + ' + q.c + ' = ' + q.x;
+    else last = '□ = ' + q.c + ' − ' + q.v + ' = ' + q.x;
+    return [
+      q.a + DIA + q.b + ' = ' + q.a + ' ' + op + ' ' + q.b + ' = ' + q.v,
+      (q.box === 'left' ? '□' + DIA + q.c : q.c + DIA + '□') + ' = ' + boxSide + ' = ' + q.v,
+      last
+    ];
+  }
+
+  function gradeSymbol(q, value) {
+    var v = value.ans;
+    var ok = { ans: v === q.x };
+    if (ok.ans) return { correct: true, ok: ok, mistake: null };
+    var mistake = null;
+    var other = makeSymbol(q.rule === PLUS ? MINUS : PLUS, q.a, q.b, q.c, q.box);
+    if (v === q.v) mistake = 'stoppedLeft';
+    else if ([q.v + q.c, q.v - q.c, q.c - q.v].indexOf(v) >= 0) mistake = 'notInverse';
+    else if (v === other.x) mistake = 'wrongRule';
+    else if (isSlip(v, q.x)) mistake = 'calc';
+    return { correct: false, ok: ok, mistake: mistake, step: 'ans' };
+  }
+
   function generate(kind, rng) {
     rng = rng || Math.random;
+    if (kind === 'symbol') return genSymbol(rng);
     for (;;) {
       var x = randInt(rng, 120, 960);
       var a = randInt(rng, 102, 489);
@@ -165,6 +234,9 @@
   }
 
   function questionText(q) {
+    if (q.kind === 'symbol') {
+      return '기호 ' + DIA + '를 ㉠' + DIA + '㉡ = ㉠ ' + q.rule + ' ㉡이라고 약속할 때 □ 안에 알맞은 수를 구해 보세요. ' + symbolExpr(q);
+    }
     var end = ' ' + J(q.R, '이가') + ' 되었습니다. 바르게 계산한 값은 얼마일까요?';
     if (q.kind === 'one') {
       return doing(q.right, { plus: '해야 할 것을', minus: '빼야 할 것을' }) + ' 잘못하여 ' +
@@ -180,6 +252,7 @@
 
   /** 빈칸 줄. 글자는 문자열, 빈칸은 {input} */
   function lines(q) {
+    if (q.kind === 'symbol') return [['□ = ', { input: 'ans' }]];
     if (q.kind === 'guided') {
       return [
         ['잘못 계산한 식을 쓰고, 거꾸로 계산해 어떤 수 □를 구한 다음 바르게 계산해요'],
@@ -203,6 +276,7 @@
 
   /** 풀이 줄. 마지막 줄 끝 수가 답 */
   function solutionLines(q) {
+    if (q.kind === 'symbol') return symbolLines(q);
     var inv = inverse(q.wrong);
     return [
       '잘못 계산한 식: □' + opsText(q.wrong) + ' = ' + q.R,
@@ -257,6 +331,7 @@
    *   calc (계산 실수), null (그 밖)
    */
   function grade(q, value) {
+    if (q.kind === 'symbol') return gradeSymbol(q, value);
     var ok = {};
     var keys = inputKeys(q);
     keys.forEach(function (k) { ok[k] = value[k] === q.answer[k]; });
@@ -292,6 +367,8 @@
     opsText: opsText,
     generate: generate,
     worksheet: worksheet,
+    worksheetSymbol: worksheetSymbol,
+    symbolExpr: symbolExpr,
     questionText: questionText,
     lines: lines,
     inputKeys: inputKeys,

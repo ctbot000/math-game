@@ -52,10 +52,25 @@
   eq(String(m.seen).split('').sort().join() === String(m.right[0].n).split('').sort().join() && m.seen !== m.right[0].n, true, '잘못 본 수는 자리를 바꾼 수');
   eq(mistake(m, { ans: m.R }), 'undoRight', '원래 수로 되돌리면 잘못한 값이 그대로 → undoRight');
 
+  // ---- 약속한 기호 ◆ ----------------------------------------------------
+  var sy = W.worksheetSymbol();
+  eq(W.questionText(sy), '기호 ◆를 ㉠◆㉡ = ㉠ − ㉡이라고 약속할 때 □ 안에 알맞은 수를 구해 보세요. 781◆293 = □◆594', '◆ 문장');
+  eq(W.solutionLines(sy).join(' | '), '781◆293 = 781 − 293 = 488 | □◆594 = □ − 594 = 488 | □ = 488 + 594 = 1082', '◆ 풀이, 답 1082');
+  eq(mistake(sy, { ans: 488 }), 'stoppedLeft', '사진 속 488 (왼쪽만 계산) → stoppedLeft');
+  eq(mistake(sy, { ans: 106 }) + ',' + mistake(sy, { ans: 480 }), 'notInverse,wrongRule', '594 − 488, ◆를 + 로');
+
   // ---- 무작위 문제 -------------------------------------------------------
   var rng = W.mulberry32(2026);
   all(2000, '모든 종류: 잘못한 식이 맞고, 거꾸로 하면 어떤 수, 중간값 0 이상, 풀이 끝 = 답, 정답은 정답', function (i) {
     var q = W.generate(W.KINDS[i % W.KINDS.length], rng);
+    if (q.kind === 'symbol') {
+      var lhs = q.rule === '+' ? q.a + q.b : q.a - q.b;
+      var x = q.x;
+      var rhs = q.box === 'left' ? (q.rule === '+' ? x + q.c : x - q.c) : (q.rule === '+' ? q.c + x : q.c - x);
+      if (lhs !== rhs || x < 100) return 'symbol ' + W.symbolExpr(q);
+      var lastS = W.solutionLines(q).slice(-1)[0].split(' ').slice(-1)[0];
+      return Number(lastS) === x && W.grade(q, q.answer).correct ? null : 'symbol 풀이·채점';
+    }
     if (W.apply(q.wrong, q.x) !== q.R) return q.kind + ' 잘못한 식';
     if (W.apply(W.inverse(q.wrong), q.R) !== q.x) return q.kind + ' 거꾸로';
     if (W.chain(q.right, q.x).concat(W.chain(q.wrong, q.x)).some(function (v) { return v < 0; })) return q.kind + ' 음수';

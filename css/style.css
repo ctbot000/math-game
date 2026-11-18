@@ -114,6 +114,7 @@ body {
 .logo-near { background: linear-gradient(145deg, #f472b6, #f59e0b); font-size: 24px; }
 .logo-riddle { background: linear-gradient(145deg, #34d399, #0ea5e9); font-size: 15px; }
 .logo-wrongcalc { background: linear-gradient(145deg, #fb7185, #8b5cf6); font-size: 24px; }
+.logo-bundle { background: linear-gradient(145deg, #facc15, #f97316); font-size: 24px; }
 
 .brand h1 { margin: 0; font-size: 17px; letter-spacing: -0.2px; }
 /* 좁은 화면에서 한글이 단어 중간에서 끊기지 않도록 */

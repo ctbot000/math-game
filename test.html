@@ -43,6 +43,8 @@
 <script src="js/riddle.test.js"></script>
 <script src="js/wrongcalc.js"></script>
 <script src="js/wrongcalc.test.js"></script>
+<script src="js/bundle.js"></script>
+<script src="js/bundle.test.js"></script>
 <script>
   var suites = [
     { name: 'korean-number.js', results: window.KOREAN_NUMBER_TEST_RESULTS || [] },
@@ -55,7 +57,8 @@
     { name: 'consec.js', results: window.CONSEC_TEST_RESULTS || [] },
     { name: 'near.js', results: window.NEAR_TEST_RESULTS || [] },
     { name: 'riddle.js', results: window.RIDDLE_TEST_RESULTS || [] },
-    { name: 'wrongcalc.js', results: window.WRONGCALC_TEST_RESULTS || [] }
+    { name: 'wrongcalc.js', results: window.WRONGCALC_TEST_RESULTS || [] },
+    { name: 'bundle.js', results: window.BUNDLE_TEST_RESULTS || [] }
   ];
   var all = [].concat.apply([], suites.map(function (s) { return s.results; }));
   var failedCount = all.filter(function (r) { return !r.pass; }).length;

@@ -12,11 +12,12 @@
     { id: 'misread', label: '잘못 본 수', hint: '177을 771로 잘못 봤다면 — 잘못 본 수로 되돌려요' },
     { id: 'guided', label: '두 번 차례로', hint: '잘못한 식 → 어떤 수 □ → 바르게 계산한 값을 차례로' },
     { id: 'two', label: '두 번 계산', hint: '436을 더한 후 188을 빼야 할 것을 뺀 후 더했다면' },
+    { id: 'symbol', label: '약속한 기호', hint: '㉠◆㉡ = ㉠ − ㉡일 때 781◆293 = □◆594 — 왼쪽을 계산하고 거꾸로 □ 구하기' },
     { id: 'mix', label: '혼합', hint: '모든 문제 무작위 — 실전 연습' }
   ];
 
   // 문제 종류마다 기본 점수. 여기에 연속 보너스가 붙는다.
-  var POINTS = { one: 14, misread: 18, guided: 18, two: 24 };
+  var POINTS = { one: 14, misread: 18, guided: 18, two: 24, symbol: 20 };
 
   var state = {
     mode: 'practice',
@@ -134,8 +135,9 @@
 
   function nextQuestion() {
     // 학습지 단계의 첫 문제는 학습지 그대로
-    if (state.stageId === 'two' && state.lastSig === null) {
-      var w = S.worksheet();
+    var first = { two: S.worksheet, symbol: S.worksheetSymbol }[state.stageId];
+    if (first && state.lastSig === null) {
+      var w = first();
       state.lastSig = signature(w);
       return w;
     }
@@ -155,6 +157,10 @@
   }
 
   function hintFor(q) {
+    if (q.kind === 'symbol') {
+      return '약속대로 ◆를 ' + q.rule + '로 바꿔 써요. 먼저 왼쪽 ' + q.a + '◆' + q.b + '를 계산하고, ' +
+        '오른쪽 식도 같은 값이 되도록 거꾸로 계산해 □를 구해요.';
+    }
     var base = '먼저 잘못 계산한 식을 □로 써요. 예: □' + S.opsText(q.wrong) + ' = ' + q.R + '. ' +
       '거꾸로 계산해 어떤 수 □를 구해요 — 더한 것은 빼고, 뺀 것은 더해요.';
     if (q.wrong.length > 1) base += ' 마지막에 한 셈부터 되돌려요.';
@@ -172,6 +178,10 @@
       case 'undoRight':
         var hard = '013678'.indexOf(String(q.seen).slice(-1)) >= 0;
         return { head: '실제로 계산한 수는 ' + q.seen + (hard ? '이에요' : '예요') + '. 되돌릴 때는 잘못 본 수 ' + S.J(q.seen, '을를') + ' 써요.', body: body };
+      case 'stoppedLeft':
+        return { head: '그건 왼쪽 ' + q.a + '◆' + q.b + '의 값이에요. 오른쪽 식도 이 값이 되게 하는 □를 구해요.', body: body };
+      case 'wrongRule':
+        return { head: '◆는 약속대로 ' + q.rule + '로 계산해요.', body: body };
       case 'gaveX':
         return { head: '그건 어떤 수예요. 어떤 수로 바르게 계산한 값을 구해요.', body: sol[2] };
       case 'gaveWrong':
@@ -193,7 +203,7 @@
   function renderStrip(q, reveal) {
     var box = el.strip;
     box.innerHTML = '';
-    if (!reveal) { box.hidden = true; return; }
+    if (!reveal || q.kind === 'symbol') { box.hidden = true; return; }
     box.hidden = false;
     [['잘못', q.wrong, 'chip-bad'], ['바르게', q.right, 'chip-good']].forEach(function (r) {
       var row = document.createElement('div');

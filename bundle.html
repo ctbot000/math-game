@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="두 묶음 비교 — 공책 4권과 필통 2개는 1280 g, 공책 2권과 필통 2개는 780 g일 때 공책 한 권은? 똑같은 것을 빼서 구하기.">
+<title>두 묶음 비교</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>⚖️</text></svg>">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/bundle.css">
+</head>
+<body>
+<div class="wrap">
+
+  <nav class="crumb"><a href="./">← 수학 게임</a></nav>
+
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo logo-bundle" aria-hidden="true">⚖</span>
+      <div>
+        <h1>두 묶음 비교</h1>
+        <p>초등 3학년 · 두 묶음에 똑같이 있는 것을 빼서 한 개의 무게·값 구하기</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button type="button" class="icon-btn" id="btn-guide" aria-pressed="false">📘 규칙</button>
+      <button type="button" class="icon-btn" id="btn-sound" aria-pressed="true" title="소리 켜기/끄기">🔊</button>
+    </div>
+  </header>
+
+  <!-- 규칙 시트 -->
+  <section class="panel guide" id="guide" hidden>
+    <h2>푸는 법</h2>
+    <p class="guide-ex">공책 4권 + 필통 2개 = 1280 g, 공책 2권 + 필통 2개 = 780 g일 때 공책 한 권은?</p>
+    <ul>
+      <li>두 묶음을 나란히 써요. <b>필통 2개는 양쪽에 똑같이</b> 있어요.</li>
+      <li>큰 묶음에서 작은 묶음을 빼면 공책만 남아요. <code>공책 2권 = 1280 − 780 = 500 g</code></li>
+      <li>공책 2권이 500 g이니 한 권은 반: <code>500의 반은 250 → 250 g</code></li>
+      <li>필통도 구하려면: <code>공책 2권 = 500 g</code>이니 <code>필통 2개 = 780 − 500 = 280 g</code>, 한 개는 <code>140 g</code></li>
+    </ul>
+  </section>
+
+  <!-- 설정 -->
+  <section class="panel">
+    <div class="control-row">
+      <span class="control-label">모드</span>
+      <div class="segmented" id="mode-group" role="group" aria-label="모드">
+        <button type="button" data-mode="practice" aria-pressed="true">연습</button>
+        <button type="button" data-mode="challenge" aria-pressed="false">도전 90초</button>
+      </div>
+    </div>
+    <div class="control-row">
+      <span class="control-label">단계</span>
+      <div class="segmented" id="level-group" role="group" aria-label="단계"></div>
+    </div>
+    <p class="level-hint" id="level-hint"></p>
+  </section>
+
+  <!-- 통계 -->
+  <dl class="stats">
+    <div class="stat"><dt>점수</dt><dd id="stat-score">0</dd></div>
+    <div class="stat"><dt>연속</dt><dd id="stat-streak">0</dd></div>
+    <div class="stat"><dt>정확도</dt><dd id="stat-accuracy">—</dd></div>
+    <div class="stat" id="stat-right-tile"><dt id="stat-right-label">최고 연속</dt><dd id="stat-right">0</dd></div>
+  </dl>
+
+  <!-- 문제 -->
+  <main class="card" id="card">
+    <p class="prompt" id="prompt"></p>
+    <p class="story" id="story" hidden></p>
+    <div class="expr" id="expr" hidden></div>
+    <p class="hint-text" id="hint-text" hidden></p>
+
+    <form id="answer-form" autocomplete="off">
+      <div class="field" id="field-lines">
+        <div class="field-head">
+          <span class="label" id="label-lines">답</span>
+          <span class="eg">빈칸에 숫자만</span>
+        </div>
+        <div class="eq-lines" id="eq-lines"></div>
+        <p class="field-msg" id="msg-lines"></p>
+      </div>
+
+      <div class="feedback" id="feedback" hidden></div>
+      <div class="strip" id="strip" hidden></div>
+
+      <div class="actions">
+        <button type="submit" class="btn btn-primary" id="btn-submit">확인</button>
+        <button type="button" class="btn btn-ghost" id="btn-hint" aria-pressed="false">힌트</button>
+        <button type="button" class="btn btn-ghost" id="btn-skip">모르겠어요</button>
+      </div>
+    </form>
+
+    <div class="result" id="result" hidden>
+      <h2 id="result-title">시간 종료!</h2>
+      <div class="big" id="result-score">0</div>
+      <p id="result-detail"></p>
+      <div class="actions">
+        <button type="button" class="btn btn-primary" id="btn-restart">다시 도전</button>
+      </div>
+    </div>
+  </main>
+
+  <p class="foot"><kbd>Enter</kbd> 다음 빈칸·확인·다음 문제 · 칸 사이는 <kbd>Tab</kbd></p>
+</div>
+
+<script src="js/bundle.js"></script>
+<script src="js/bundle-game.js"></script>
+</body>
+</html>

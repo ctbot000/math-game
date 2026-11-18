@@ -64,10 +64,26 @@
   tw.B = 9;
   eq(R.grade(tg, tw).step + ',' + mistake(tg, tw), 'B,forgotCarry', '㉡ = 9 → forgotCarry');
 
+  // ---- 학습지 9: 뺄셈식 -------------------------------------------------
+  var sb = R.worksheetSub();
+  eq(R.questionText(sb), '뺄셈식에서 같은 기호는 같은 수를 나타낼 때 ㉠과 ㉡에 알맞은 수를 각각 구해 보세요.', '9 문장');
+  eq(sb.rows.map(R.show).join(' | ') + ' → ' + JSON.stringify(sb.answer), '㉠㉡㉠ | ㉡㉠㉡ | ㉡55 → {"A":9,"B":4}', '9 답 ㉠ = 9, ㉡ = 4');
+  eq(R.solutionLines(sb).slice(-2).join(' | '), '(9, 4): 949 − 494 = 455 ✓ | ㉠ = 9, ㉡ = 4 → 949 − 494 = 455', '9 풀이 끝');
+  eq(R.solutionLines(sb)[3], '(8, 3): 838 − 383 = 455 ≠ ㉡55(355) ✗', '후보 (8, 3)은 ㉡55가 355라 안 맞음');
+  eq(mistake(sb, { A: 8, B: 3 }) + ',' + mistake(sb, { A: 4, B: 9 }), 'onesOnly,swapped', '9 실수');
+
   // ---- 무작위 문제 -------------------------------------------------------
   var rng = R.mulberry32(2026);
   all(1200, '모든 종류: 답은 하나, 맨 앞은 0이 아님, 식이 맞음, 풀이 끝 = 합, 정답은 정답', function (i) {
     var q = R.generate(R.KINDS[i % R.KINDS.length], rng);
+    if (q.kind === 'sub') {
+      var ss = R.bruteForce(q).filter(function (v) { return v.A !== v.B; });
+      if (ss.length !== 1 || ss[0].A !== q.vals.A || ss[0].B !== q.vals.B) return 'sub 답';
+      if (q.nums[0] - q.nums[1] !== q.nums[2] || q.nums[2] < 100) return 'sub 식';
+      if (!q.cands.some(function (v) { return v.A === q.vals.A && v.B === q.vals.B; })) return 'sub 후보에 답이 없음';
+      if (R.solutionLines(q).filter(function (l) { return / ✓$/.test(l); }).length !== 1) return 'sub ✓ 하나';
+      return R.grade(q, q.answer).correct ? null : 'sub 정답 채점';
+    }
     var sols = R.bruteForce(q);
     if (sols.length !== 1) return q.kind + ' 답 ' + sols.length + '개 ' + q.rows.map(R.show).join(' ');
     if (q.syms.some(function (x) { return sols[0][x] !== q.vals[x]; })) return q.kind + ' 값';

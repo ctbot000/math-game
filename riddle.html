@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="description" content="기호가 있는 덧셈식 — ㉠㉠㉡ + ㉡㉡㉡ = 1000에서 ㉠과 ㉡, 53㉠ + 3㉡7 = ㉢23일 때 ㉠ + ㉡ + ㉢. 일의 자리부터 받아올림을 따져 기호의 수 구하기.">
-<title>기호가 있는 덧셈식</title>
+<title>기호가 있는 덧셈식과 뺄셈식</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>➕</text></svg>">
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/riddle.css">
@@ -18,8 +18,8 @@
     <div class="brand">
       <span class="logo logo-riddle" aria-hidden="true">㉠+</span>
       <div>
-        <h1>기호가 있는 덧셈식</h1>
-        <p>초등 3학년 · 일의 자리부터 받아올림을 따져 ㉠, ㉡, ㉢ 구하기</p>
+        <h1>기호가 있는 덧셈식과 뺄셈식</h1>
+        <p>초등 3학년 · 일의 자리부터 받아올림을 따져 ㉠, ㉡, ㉢ 구하기, 뺄셈식은 후보를 넣어 보기</p>
       </div>
     </div>
     <div class="topbar-actions">
@@ -43,6 +43,12 @@
       <li>일의 자리: ㉡ + ㉡의 끝자리가 0 → ㉡은 0 또는 5. ㉡은 <b>맨 앞 자리</b>에도 있으니 0이 될 수 없어요. <code>㉡ = 5</code></li>
       <li>십의 자리: <code>㉠ + 5 + 1 = 10 → ㉠ = 4</code></li>
       <li>확인: <code>445 + 555 = 1000</code></li>
+    </ul>
+    <p class="guide-ex">㉠㉡㉠ − ㉡㉠㉡ = ㉡55 — 뺄셈식</p>
+    <ul>
+      <li>일의 자리 ㉠ − ㉡의 끝자리가 5이고, 빼지는 수가 더 커야 해요 → <code>(6, 1), (7, 2), (8, 3), (9, 4)</code></li>
+      <li>하나씩 넣어 봐요. <code>838 − 383 = 455</code>인데 ㉡55는 355라서 ✗</li>
+      <li><code>949 − 494 = 455</code> ✓ → <code>㉠ = 9, ㉡ = 4</code></li>
     </ul>
   </section>
 

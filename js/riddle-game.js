@@ -12,11 +12,12 @@
     { id: 'three', label: '세 기호의 합', hint: '53㉠ + 3㉡7 = ㉢23 — ㉠, ㉡, ㉢을 구해 더하기' },
     { id: 'pguided', label: '같은 기호 차례로', hint: '같은 기호는 같은 수 — 일의 자리부터 차례로' },
     { id: 'pair', label: '같은 기호', hint: '㉠㉠㉡ + ㉡㉡㉡ = 1000 — ㉠과 ㉡ 구하기' },
+    { id: 'sub', label: '뺄셈식', hint: '㉠㉡㉠ − ㉡㉠㉡ = ㉡55 — 일의 자리로 후보를 찾고 하나씩 넣어 보기' },
     { id: 'mix', label: '혼합', hint: '모든 문제 무작위 — 실전 연습' }
   ];
 
   // 문제 종류마다 기본 점수. 여기에 연속 보너스가 붙는다.
-  var POINTS = { guided: 16, three: 20, pguided: 18, pair: 22 };
+  var POINTS = { guided: 16, three: 20, pguided: 18, pair: 22, sub: 24 };
 
   var state = {
     mode: 'practice',
@@ -134,7 +135,7 @@
 
   function nextQuestion() {
     // 학습지 단계의 첫 문제는 학습지 그대로
-    var first = { three: S.worksheetThree, pair: S.worksheetPair }[state.stageId];
+    var first = { three: S.worksheetThree, pair: S.worksheetPair, sub: S.worksheetSub }[state.stageId];
     if (first && state.lastSig === null) {
       var w = first();
       state.lastSig = signature(w);
@@ -158,6 +159,10 @@
   }
 
   function hintFor(q) {
+    if (q.kind === 'sub') {
+      return '일의 자리를 먼저 봐요. 끝자리가 맞는 (㉠, ㉡)을 모두 적고, 빼지는 수가 더 커야 해요. ' +
+        '후보를 하나씩 식에 넣어 계산해 보면 하나만 맞아요.';
+    }
     var base = '세로로 쓰고 일의 자리부터 한 자리씩 구해요. 두 수를 더한 값이 10을 넘으면 윗자리로 1을 받아올려요.';
     if (q.syms.length === 2) {
       return base + ' 같은 기호는 같은 수예요. ㉡ + ㉡처럼 같은 기호 둘을 더하면 끝자리가 맞는 수가 둘일 수 있는데, 맨 앞 자리 수는 0이 될 수 없어요.';
@@ -177,6 +182,8 @@
         return { head: '끝자리 수에서 거꾸로 빼면 안 돼요. 더해서 끝자리가 맞는 수를 찾아요. 예: ㉠ + 7 = 13 → ㉠ = 6', body: body };
       case 'leadingZero':
         return { head: sym + '은 맨 앞 자리에 있어서 0이 될 수 없어요.', body: body };
+      case 'onesOnly':
+        return { head: '일의 자리만 맞아요. 그 값을 식 전체에 넣어 계산해 보세요.', body: body };
       case 'swapped':
         return { head: '㉠과 ㉡을 바꿔 썼어요.', body: body };
       case 'carry':
@@ -199,7 +206,7 @@
     var width = 1 + Math.max(4, q.rows[2].length);
     box.style.setProperty('--cols', width);
     var carries = {};
-    if (reveal) q.sol.steps.forEach(function (st) { if (st.carryOut) carries[st.col + 1] = st.carryOut; });
+    if (reveal && q.sol) q.sol.steps.forEach(function (st) { if (st.carryOut) carries[st.col + 1] = st.carryOut; });
 
     function row(tokens, sign, cls) {
       var r = document.createElement('div');
@@ -218,7 +225,7 @@
       box.appendChild(r);
     }
 
-    if (reveal) {
+    if (reveal && q.sol) {
       var cr = [];
       for (var k = 0; k < width - 1; k++) cr.unshift(carries[k] ? String(carries[k]) : undefined);
       var r0 = document.createElement('div');
@@ -228,7 +235,7 @@
       box.appendChild(r0);
     }
     row(q.rows[0], '', '');
-    row(q.rows[1], '+', '');
+    row(q.rows[1], q.op === '−' ? '−' : '+', '');
     var rule = document.createElement('div');
     rule.className = 'vrule';
     box.appendChild(rule);
